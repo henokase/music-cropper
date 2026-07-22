@@ -19,18 +19,27 @@ export function AudioPlayer() {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isReady, setIsReady] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
+    const syncingRef = useRef(false);
 
     const handleRegionCreateRef = useRef(null);
     handleRegionCreateRef.current = (region) => {
-        regionsPluginRef.current?.getRegions().forEach((r) => r.remove());
+        if (syncingRef.current) return;
         const start = formatTime(region.start);
         const end = formatTime(region.end);
         useAudioStore.getState().addInterval({ startTime: start, endTime: end });
         toast.success("Interval created");
     };
 
+    // Initialize WaveSurfer — only when the actual audio file changes
     useEffect(() => {
-        if (!waveformRef.current || !audioFile) return;
+        if (!waveformRef.current || !audioFile?.file) return;
+
+        if (wavesurferRef.current) {
+            regionsPluginRef.current?.getRegions().forEach((r) => r.remove());
+            wavesurferRef.current.destroy();
+            wavesurferRef.current = null;
+            regionsPluginRef.current = null;
+        }
 
         const wavesurfer = WaveSurfer.create({
             container: waveformRef.current,
@@ -47,12 +56,15 @@ export function AudioPlayer() {
         regionsPluginRef.current = regionsPlugin;
 
         regionsPlugin.enableDragSelection();
-        regionsPlugin.on("region-created", (region) => handleRegionCreateRef.current(region));
+        regionsPlugin.on("region-created", (region) => {
+            handleRegionCreateRef.current(region);
+        });
 
         wavesurfer.on("ready", () => setIsReady(true));
         wavesurfer.on("play", () => setIsPlaying(true));
         wavesurfer.on("pause", () => setIsPlaying(false));
         wavesurfer.on("timeupdate", (time) => setCurrentTime(time));
+        wavesurfer.on("finish", () => setIsPlaying(false));
 
         wavesurfer.loadBlob(audioFile.file);
 
@@ -64,7 +76,50 @@ export function AudioPlayer() {
             wavesurferRef.current = null;
             regionsPluginRef.current = null;
         };
-    }, [audioFile]);
+    }, [audioFile?.file]);
+
+    // Sync regions with intervals — does NOT destroy/recreate WaveSurfer
+    useEffect(() => {
+        const regionsPlugin = regionsPluginRef.current;
+        if (!regionsPlugin || !audioFile) return;
+
+        const currentRegions = regionsPlugin.getRegions();
+        const storeIntervalIds = new Set(audioFile.intervals.map((i) => i.id));
+
+        // Remove regions whose intervals were deleted
+        for (const region of currentRegions) {
+            if (!storeIntervalIds.has(region.id)) {
+                region.remove();
+            }
+        }
+
+        // Parse time string to seconds
+        const parseTime = (time) => {
+            const parts = time.split(":").map(Number);
+            return parts.length === 3
+                ? parts[0] * 3600 + parts[1] * 60 + parts[2]
+                : parts[0] * 60 + parts[1];
+        };
+
+        // Get existing region IDs that are still in the store
+        const existingRegionIds = new Set(
+            regionsPlugin.getRegions().map((r) => r.id)
+        );
+
+        // Add regions for new intervals — flag to prevent region-created handler from re-adding
+        syncingRef.current = true;
+        for (const interval of audioFile.intervals) {
+            if (!existingRegionIds.has(interval.id)) {
+                regionsPlugin.addRegion({
+                    start: parseTime(interval.startTime),
+                    end: parseTime(interval.endTime),
+                    id: interval.id,
+                    color: "rgba(79, 70, 229, 0.15)",
+                });
+            }
+        }
+        syncingRef.current = false;
+    }, [audioFile?.intervals]);
 
     const togglePlayPause = () => {
         if (wavesurferRef.current && isReady) {
