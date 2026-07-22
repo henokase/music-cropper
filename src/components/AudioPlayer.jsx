@@ -19,58 +19,52 @@ export function AudioPlayer() {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isReady, setIsReady] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
-    const addInterval = useAudioStore((state) => state.addInterval);
 
-    const handleRegionCreate = (region) => {
+    const handleRegionCreateRef = useRef(null);
+    handleRegionCreateRef.current = (region) => {
         regionsPluginRef.current?.getRegions().forEach((r) => r.remove());
         const start = formatTime(region.start);
         const end = formatTime(region.end);
-        addInterval({ startTime: start, endTime: end });
+        useAudioStore.getState().addInterval({ startTime: start, endTime: end });
         toast.success("Interval created");
     };
 
     useEffect(() => {
         if (!waveformRef.current || !audioFile) return;
 
-        // Initialize WaveSurfer
         const wavesurfer = WaveSurfer.create({
             container: waveformRef.current,
             waveColor: "#4F46E5",
             progressColor: "#818CF8",
             cursorColor: "#4F46E5",
             height: 128,
-            partialRender: false, // Avoid partial rendering
+            partialRender: false,
             normalize: true,
         });
 
-        // Add RegionsPlugin
         const regionsPlugin = RegionsPlugin.create();
         wavesurfer.registerPlugin(regionsPlugin);
         regionsPluginRef.current = regionsPlugin;
 
-        // Enable drag selection
         regionsPlugin.enableDragSelection();
-        regionsPlugin.on("region-created", handleRegionCreate);
+        regionsPlugin.on("region-created", (region) => handleRegionCreateRef.current(region));
 
-        // Event Listeners
         wavesurfer.on("ready", () => setIsReady(true));
         wavesurfer.on("play", () => setIsPlaying(true));
         wavesurfer.on("pause", () => setIsPlaying(false));
         wavesurfer.on("timeupdate", (time) => setCurrentTime(time));
 
-        // Load audio file
         wavesurfer.loadBlob(audioFile.file);
 
         wavesurferRef.current = wavesurfer;
 
-        // Cleanup on unmount
         return () => {
             regionsPlugin?.getRegions().forEach((r) => r.remove());
             wavesurfer.destroy();
             wavesurferRef.current = null;
             regionsPluginRef.current = null;
         };
-    }, [audioFile, addInterval]);
+    }, [audioFile]);
 
     const togglePlayPause = () => {
         if (wavesurferRef.current && isReady) {

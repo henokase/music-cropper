@@ -18,31 +18,11 @@ export function Layout({ children }) {
             }
         };
 
-        const handlePopState = (e) => {
-            if (location.pathname === '/editor' && audioFile) {
-                e.preventDefault();
-                const confirmed = window.confirm('Are you sure you want to leave? All progress will be lost.');
-                if (confirmed) {
-                    clearAudio();
-                    navigate('/', { replace: true });
-                } else {
-                    window.history.pushState(null, '', '/editor');
-                }
-            }
-        };
-
-        if (location.pathname === '/editor' && audioFile) {
-            window.history.pushState(null, '', '/editor');
-        }
-
         window.addEventListener('beforeunload', handleBeforeUnload);
-        window.addEventListener('popstate', handlePopState);
-
         return () => {
             window.removeEventListener('beforeunload', handleBeforeUnload);
-            window.removeEventListener('popstate', handlePopState);
         };
-    }, [location.pathname, audioFile, clearAudio, navigate]);
+    }, [location.pathname, audioFile]);
 
     const handleNavigation = () => {
         if (location.pathname === '/editor' && audioFile) {

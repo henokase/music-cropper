@@ -1,4 +1,4 @@
-import { Trash2, Scissors, Download, Edit2 } from "lucide-react";
+import { Trash2, Scissors, Download } from "lucide-react";
 import { useAudioStore } from "../store/useAudioStore";
 import { audioBufferToWav } from "../utils/audioUtils";
 import JSZip from 'jszip';
@@ -12,9 +12,6 @@ export function IntervalList() {
     const removeInterval = useAudioStore((state) => state.removeInterval);
     const [isProcessing, setIsProcessing] = useState(false);
     const [progress, setProgress] = useState(0);
-    const [editingId, setEditingId] = useState(null);
-    const [editTime, setEditTime] = useState({ start: '', end: '' });
-    const updateInterval = useAudioStore((state) => state.updateInterval);
 
     const handleCropAll = async () => {
         if (!audioFile || intervals.length === 0) return;
@@ -24,7 +21,9 @@ export function IntervalList() {
             setProgress(0);
             
             const audioContext = new AudioContext();
-            const response = await fetch(URL.createObjectURL(audioFile.file));
+            const audioObjectUrl = URL.createObjectURL(audioFile.file);
+            const response = await fetch(audioObjectUrl);
+            URL.revokeObjectURL(audioObjectUrl);
             const arrayBuffer = await response.arrayBuffer();
             const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
@@ -32,11 +31,15 @@ export function IntervalList() {
             
             for (let i = 0; i < intervals.length; i++) {
                 const interval = intervals[i];
-                const [startMinutes, startSeconds] = interval.startTime.split(':').map(Number);
-                const [endMinutes, endSeconds] = interval.endTime.split(':').map(Number);
-                
-                const startTime = startMinutes * 60 + startSeconds;
-                const endTime = endMinutes * 60 + endSeconds;
+                const startParts = interval.startTime.split(':').map(Number);
+                const endParts = interval.endTime.split(':').map(Number);
+
+                const startTime = startParts.length === 3
+                    ? startParts[0] * 3600 + startParts[1] * 60 + startParts[2]
+                    : startParts[0] * 60 + startParts[1];
+                const endTime = endParts.length === 3
+                    ? endParts[0] * 3600 + endParts[1] * 60 + endParts[2]
+                    : endParts[0] * 60 + endParts[1];
                 
                 const sampleRate = audioBuffer.sampleRate;
                 const startSample = Math.floor(startTime * sampleRate);
@@ -93,18 +96,24 @@ export function IntervalList() {
             const audioContext = new AudioContext();
             setProgress(10);
 
-            const response = await fetch(URL.createObjectURL(audioFile.file));
+            const audioObjectUrl = URL.createObjectURL(audioFile.file);
+            const response = await fetch(audioObjectUrl);
+            URL.revokeObjectURL(audioObjectUrl);
             const arrayBuffer = await response.arrayBuffer();
             setProgress(30);
 
             const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
             setProgress(50);
 
-            const [startMinutes, startSeconds] = interval.startTime.split(':').map(Number);
-            const [endMinutes, endSeconds] = interval.endTime.split(':').map(Number);
-            
-            const startTime = startMinutes * 60 + startSeconds;
-            const endTime = endMinutes * 60 + endSeconds;
+            const startParts = interval.startTime.split(':').map(Number);
+            const endParts = interval.endTime.split(':').map(Number);
+
+            const startTime = startParts.length === 3
+                ? startParts[0] * 3600 + startParts[1] * 60 + startParts[2]
+                : startParts[0] * 60 + startParts[1];
+            const endTime = endParts.length === 3
+                ? endParts[0] * 3600 + endParts[1] * 60 + endParts[2]
+                : endParts[0] * 60 + endParts[1];
             
             const sampleRate = audioBuffer.sampleRate;
             const startSample = Math.floor(startTime * sampleRate);

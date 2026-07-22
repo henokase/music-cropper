@@ -10,20 +10,23 @@ export function IntervalForm() {
     const addInterval = useAudioStore((state) => state.addInterval);
 
     const validateTimeFormat = (time) => {
-        const pattern = /^([0-9]+):([0-5][0-9])$/;
+        const pattern = /^([0-9]+):([0-5][0-9])(:([0-5][0-9]))?$/;
         return pattern.test(time);
     };
 
     const convertToSeconds = (time) => {
-        const [minutes, seconds] = time.split(':').map(Number);
-        return minutes * 60 + seconds;
+        const parts = time.split(':').map(Number);
+        if (parts.length === 3) {
+            return parts[0] * 3600 + parts[1] * 60 + parts[2];
+        }
+        return parts[0] * 60 + parts[1];
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
         if (!validateTimeFormat(startTime) || !validateTimeFormat(endTime)) {
-            toast.error('Please enter valid time format (mm:ss)');
+            toast.error('Please enter valid time format (mm:ss or h:mm:ss)');
             return;
         }
 
@@ -55,7 +58,7 @@ export function IntervalForm() {
             <div className="flex flex-wrap gap-4">
                 <div className="flex-1 min-w-[120px]">
                     <label htmlFor="startTime" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Start Time (mm:ss)
+                        Start Time (mm:ss or h:mm:ss)
                     </label>
                     <input
                         type="text"
@@ -68,7 +71,7 @@ export function IntervalForm() {
                 </div>
                 <div className="flex-1 min-w-[120px]">
                     <label htmlFor="endTime" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        End Time (mm:ss)
+                        End Time (mm:ss or h:mm:ss)
                     </label>
                     <input
                         type="text"
