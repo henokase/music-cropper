@@ -1,223 +1,198 @@
 import { Trash2, Scissors, Download } from "lucide-react";
 import { useAudioStore } from "../store/useAudioStore";
 import { audioBufferToWav } from "../utils/audioUtils";
-import JSZip from 'jszip';
-import toast from 'react-hot-toast';
-import { useState } from 'react';
-import { ProgressBar } from './ProgressBar';
+import JSZip from "jszip";
+import { toast } from "sonner";
+import { useState } from "react";
+import { ProgressBar } from "./ProgressBar";
 
 export function IntervalList() {
-    const audioFile = useAudioStore((state) => state.audioFile);
-    const intervals = audioFile?.intervals ?? [];
-    const removeInterval = useAudioStore((state) => state.removeInterval);
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [progress, setProgress] = useState(0);
+  const audioFile = useAudioStore((state) => state.audioFile);
+  const intervals = audioFile?.intervals ?? [];
+  const removeInterval = useAudioStore((state) => state.removeInterval);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
 
-    const handleCropAll = async () => {
-        if (!audioFile || intervals.length === 0) return;
+  const handleCropAll = async () => {
+    if (!audioFile || intervals.length === 0) return;
+    try {
+      setIsProcessing(true);
+      setProgress(0);
 
-        try {
-            setIsProcessing(true);
-            setProgress(0);
-            
-            const audioContext = new AudioContext();
-            const audioObjectUrl = URL.createObjectURL(audioFile.file);
-            const response = await fetch(audioObjectUrl);
-            URL.revokeObjectURL(audioObjectUrl);
-            const arrayBuffer = await response.arrayBuffer();
-            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      const ac = new AudioContext();
+      const url = URL.createObjectURL(audioFile.file);
+      const res = await fetch(url);
+      URL.revokeObjectURL(url);
+      const buf = await ac.decodeAudioData(await res.arrayBuffer());
 
-            const zip = new JSZip();
-            
-            for (let i = 0; i < intervals.length; i++) {
-                const interval = intervals[i];
-                const startParts = interval.startTime.split(':').map(Number);
-                const endParts = interval.endTime.split(':').map(Number);
+      const zip = new JSZip();
+      for (let i = 0; i < intervals.length; i++) {
+        const iv = intervals[i];
+        const sp = iv.startTime.split(":").map(Number);
+        const ep = iv.endTime.split(":").map(Number);
+        const st =
+          sp.length === 3
+            ? sp[0] * 3600 + sp[1] * 60 + sp[2]
+            : sp[0] * 60 + sp[1];
+        const et =
+          ep.length === 3
+            ? ep[0] * 3600 + ep[1] * 60 + ep[2]
+            : ep[0] * 60 + ep[1];
+        const sr = buf.sampleRate;
+        const ss = Math.floor(st * sr);
+        const es = Math.floor(et * sr);
 
-                const startTime = startParts.length === 3
-                    ? startParts[0] * 3600 + startParts[1] * 60 + startParts[2]
-                    : startParts[0] * 60 + startParts[1];
-                const endTime = endParts.length === 3
-                    ? endParts[0] * 3600 + endParts[1] * 60 + endParts[2]
-                    : endParts[0] * 60 + endParts[1];
-                
-                const sampleRate = audioBuffer.sampleRate;
-                const startSample = Math.floor(startTime * sampleRate);
-                const endSample = Math.floor(endTime * sampleRate);
-                
-                const newBuffer = audioContext.createBuffer(
-                    audioBuffer.numberOfChannels,
-                    (endSample - startSample),
-                    sampleRate
-                );
-
-                for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
-                    const channelData = audioBuffer.getChannelData(channel);
-                    const newChannelData = newBuffer.getChannelData(channel);
-                    for (let i = 0; i < (endSample - startSample); i++) {
-                        newChannelData[i] = channelData[startSample + i];
-                    }
-                }
-
-                const wavBlob = await audioBufferToWav(newBuffer);
-                const fileName = `${audioFile.file.name.split('.')[0]}_${interval.startTime}-${interval.endTime}.wav`;
-                zip.file(fileName, wavBlob);
-                
-                setProgress(((i + 1) / intervals.length) * 100);
-            }
-
-            const content = await zip.generateAsync({ type: 'blob' });
-            const url = URL.createObjectURL(content);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'cropped_audio.zip';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-
-            toast.success('All intervals exported successfully');
-        } catch (error) {
-            console.error('Error processing audio:', error);
-            toast.error('Error processing audio files');
-        } finally {
-            setIsProcessing(false);
-            setProgress(0);
+        const nb = ac.createBuffer(buf.numberOfChannels, es - ss, sr);
+        for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+          const cd = buf.getChannelData(ch);
+          const nd = nb.getChannelData(ch);
+          for (let j = 0; j < es - ss; j++) nd[j] = cd[ss + j];
         }
-    };
+        zip.file(
+          `${audioFile.file.name.split(".")[0]}_${iv.startTime}-${iv.endTime}.wav`,
+          await audioBufferToWav(nb),
+        );
+        setProgress(((i + 1) / intervals.length) * 100);
+      }
 
-    const handleCrop = async (interval) => {
-        if (!audioFile) return;
+      const blob = await zip.generateAsync({ type: "blob" });
+      const dl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = dl;
+      a.download = "cropped_audio.zip";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(dl);
+      toast.success("All intervals exported");
+    } catch (err) {
+      console.error(err);
+      toast.error("Export failed");
+    } finally {
+      setIsProcessing(false);
+      setProgress(0);
+    }
+  };
 
-        try {
-            setIsProcessing(true);
-            setProgress(0);
+  const handleCrop = async (interval) => {
+    if (!audioFile) return;
+    try {
+      setIsProcessing(true);
+      setProgress(0);
 
-            const audioContext = new AudioContext();
-            setProgress(10);
+      const ac = new AudioContext();
+      const url = URL.createObjectURL(audioFile.file);
+      const res = await fetch(url);
+      URL.revokeObjectURL(url);
+      const buf = await ac.decodeAudioData(await res.arrayBuffer());
 
-            const audioObjectUrl = URL.createObjectURL(audioFile.file);
-            const response = await fetch(audioObjectUrl);
-            URL.revokeObjectURL(audioObjectUrl);
-            const arrayBuffer = await response.arrayBuffer();
-            setProgress(30);
+      const sp = interval.startTime.split(":").map(Number);
+      const ep = interval.endTime.split(":").map(Number);
+      const st =
+        sp.length === 3
+          ? sp[0] * 3600 + sp[1] * 60 + sp[2]
+          : sp[0] * 60 + sp[1];
+      const et =
+        ep.length === 3
+          ? ep[0] * 3600 + ep[1] * 60 + ep[2]
+          : ep[0] * 60 + ep[1];
+      const sr = buf.sampleRate;
+      const ss = Math.floor(st * sr);
+      const es = Math.floor(et * sr);
 
-            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-            setProgress(50);
+      const nb = ac.createBuffer(buf.numberOfChannels, es - ss, sr);
+      for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+        const cd = buf.getChannelData(ch);
+        const nd = nb.getChannelData(ch);
+        for (let j = 0; j < es - ss; j++) nd[j] = cd[ss + j];
+      }
 
-            const startParts = interval.startTime.split(':').map(Number);
-            const endParts = interval.endTime.split(':').map(Number);
+      const wav = await audioBufferToWav(nb);
+      const dl = URL.createObjectURL(wav);
+      const a = document.createElement("a");
+      a.href = dl;
+      a.download = `${audioFile.file.name.split(".")[0]}_${interval.startTime}-${interval.endTime}.wav`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(dl);
+      toast.success("Interval downloaded");
+    } catch (err) {
+      console.error(err);
+      toast.error("Crop failed");
+    } finally {
+      setIsProcessing(false);
+      setProgress(0);
+    }
+  };
 
-            const startTime = startParts.length === 3
-                ? startParts[0] * 3600 + startParts[1] * 60 + startParts[2]
-                : startParts[0] * 60 + startParts[1];
-            const endTime = endParts.length === 3
-                ? endParts[0] * 3600 + endParts[1] * 60 + endParts[2]
-                : endParts[0] * 60 + endParts[1];
-            
-            const sampleRate = audioBuffer.sampleRate;
-            const startSample = Math.floor(startTime * sampleRate);
-            const endSample = Math.floor(endTime * sampleRate);
-            
-            const newBuffer = audioContext.createBuffer(
-                audioBuffer.numberOfChannels,
-                (endSample - startSample),
-                sampleRate
-            );
+  return (
+    <div className="rounded-lg border border-light bg-surface p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-base font-medium text-[var(--color-text)]">
+          Intervals
+          {intervals.length > 0 && (
+            <span className="ml-1.5 text-sm text-muted">
+              ({intervals.length})
+            </span>
+          )}
+        </h3>
+        {intervals.length > 1 && (
+          <button
+            onClick={handleCropAll}
+            disabled={isProcessing}
+            className="flex items-center gap-1.5 rounded-md bg-[var(--color-primary)] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[var(--color-primary-hover)] disabled:opacity-40"
+          >
+            <Download className="h-4 w-4" />
+            Export All
+          </button>
+        )}
+      </div>
 
-            for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
-                const channelData = audioBuffer.getChannelData(channel);
-                const newChannelData = newBuffer.getChannelData(channel);
-                for (let i = 0; i < (endSample - startSample); i++) {
-                    newChannelData[i] = channelData[startSample + i];
-                }
-                setProgress(50 + ((channel + 1) / audioBuffer.numberOfChannels) * 30);
-            }
-
-            const wavBlob = await audioBufferToWav(newBuffer);
-            setProgress(90);
-
-            const fileName = `${audioFile.file.name.split('.')[0]}_${interval.startTime}-${interval.endTime}.wav`;
-            
-            const url = URL.createObjectURL(wavBlob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            setProgress(100);
-            toast.success('Interval cropped and downloaded successfully');
-        } catch (error) {
-            console.error('Error cropping audio:', error);
-            toast.error('Error cropping audio. Please try again.');
-        } finally {
-            setIsProcessing(false);
-            setProgress(0);
-        }
-    };
-
-    return (
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-            <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Time Intervals
-                </h3>
-                {intervals.length > 0 && (
-                    <button
-                        onClick={handleCropAll}
-                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors flex items-center gap-2"
-                        disabled={isProcessing}
-                    >
-                        <Download className="w-4 h-4" />
-                        Export All
-                    </button>
-                )}
-            </div>
-
-            {isProcessing && (
-                <div className="mb-4">
-                    <ProgressBar progress={progress} />
-                </div>
-            )}
-
-            <div className="space-y-4">
-                {intervals.map((interval) => (
-                    <div
-                        key={interval.id}
-                        className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-between"
-                    >
-                        <div className="flex-1">
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                                {interval.startTime} → {interval.endTime}
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => handleCrop(interval)}
-                                className="p-2 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400"
-                                title="Crop and download"
-                            >
-                                <Scissors className="w-5 h-5" />
-                            </button>
-                            <button
-                                onClick={() => removeInterval(interval.id)}
-                                className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
-                                title="Remove interval"
-                            >
-                                <Trash2 className="w-5 h-5" />
-                            </button>
-                        </div>
-                    </div>
-                ))}
-
-                {intervals.length === 0 && (
-                    <p className="text-center text-gray-500 dark:text-gray-400">
-                        No intervals added yet
-                    </p>
-                )}
-            </div>
+      {isProcessing && (
+        <div className="mb-4">
+          <ProgressBar progress={progress} />
         </div>
-    );
-} 
+      )}
+
+      <div className="flex flex-col gap-2">
+        {intervals.length === 0 ? (
+          <p className="py-5 text-center text-sm text-muted">
+            No intervals yet &mdash; drag on the waveform or add one manually
+          </p>
+        ) : (
+          intervals.map((interval) => (
+            <div
+              key={interval.id}
+              className="flex items-center justify-between rounded-md border border-light bg-[var(--color-bg)] px-3.5 py-2.5 transition-colors hover:border-[var(--color-border)]"
+            >
+              <span className="text-sm font-medium tabular-nums text-secondary">
+                {interval.startTime}
+                <span className="mx-2 text-muted">&rarr;</span>
+                {interval.endTime}
+              </span>
+              <div className="flex items-center gap-0.5">
+                <button
+                  onClick={() => handleCrop(interval)}
+                  disabled={isProcessing}
+                  className="flex h-8 w-8 items-center justify-center rounded text-muted transition-colors hover:bg-surface-hover hover:text-[var(--color-text)]"
+                  title="Crop & download"
+                >
+                  <Scissors className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => removeInterval(interval.id)}
+                  disabled={isProcessing}
+                  className="flex h-8 w-8 items-center justify-center rounded text-muted transition-colors hover:bg-surface-hover hover:text-[var(--color-danger)]"
+                  title="Remove"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}

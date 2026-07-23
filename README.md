@@ -1,4 +1,4 @@
-# Music Cropper
+# WaveCrop
 
 A web application for cropping and managing audio files with a clean, modern interface.
 

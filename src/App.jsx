@@ -4,27 +4,34 @@ import { EditorPage } from "./pages/EditorPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { Layout } from "./components/layout/Layout";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 
 function App() {
-    return (
-        <BrowserRouter>
-            <ErrorBoundary>
-                <Layout>
-                    <Routes>
-                        <Route path="/" element={<HomePage />} />
-                        <Route path="/editor" element={<EditorPage />} />
-                        <Route path="/not-found" element={<NotFoundPage />} />
-                        <Route
-                            path="*"
-                            element={<Navigate to="/not-found" replace />}
-                        />
-                    </Routes>
-                </Layout>
-                <Toaster position="bottom-center" />
-            </ErrorBoundary>
-        </BrowserRouter>
-    );
+  return (
+    <BrowserRouter>
+      <ErrorBoundary>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/editor" element={<EditorPage />} />
+            <Route path="/not-found" element={<NotFoundPage />} />
+            <Route
+              path="*"
+              element={<Navigate to="/not-found" replace />}
+            />
+          </Routes>
+        </Layout>
+        <Toaster
+          position="bottom-left"
+          gap={8}
+          toastOptions={{
+            duration: 3000,
+            className: "animate-fade-in",
+          }}
+        />
+      </ErrorBoundary>
+    </BrowserRouter>
+  );
 }
 
 export default App;

@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: music-cropper
+    name: wavecrop
     env: static
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist

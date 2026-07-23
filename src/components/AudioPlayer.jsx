@@ -3,204 +3,210 @@ import WaveSurfer from "wavesurfer.js";
 import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.js";
 import { Play, Pause, Volume2 } from "lucide-react";
 import { useAudioStore } from "../store/useAudioStore";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 function formatTime(seconds) {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-function formatTimePrecise(seconds) {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    const ms = Math.floor((seconds % 1) * 100);
-    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}.${ms.toString().padStart(2, "0")}`;
+function formatTimeMs(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  const ms = Math.floor((seconds % 1) * 100);
+  return `${m}:${s.toString().padStart(2, "0")}.${ms.toString().padStart(2, "0")}`;
+}
+
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
 export function AudioPlayer() {
-    const audioFile = useAudioStore((state) => state.audioFile);
-    const waveformRef = useRef(null);
-    const wavesurferRef = useRef(null);
-    const regionsPluginRef = useRef(null);
-    const hoverRef = useRef(null);
-    const waveformContainerRef = useRef(null);
-    const [isPlaying, setIsPlaying] = useState(false);
-    const [isReady, setIsReady] = useState(false);
-    const [currentTime, setCurrentTime] = useState(0);
-    const [hover, setHover] = useState({ visible: false, x: 0, time: 0 });
+  const audioFile = useAudioStore((state) => state.audioFile);
+  const waveformRef = useRef(null);
+  const wavesurferRef = useRef(null);
+  const regionsPluginRef = useRef(null);
+  const waveformContainerRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [hover, setHover] = useState({ visible: false, x: 0, time: 0 });
 
-    const handleRegionCreateRef = useRef(null);
-    handleRegionCreateRef.current = (region) => {
-        const start = formatTime(region.start);
-        const end = formatTime(region.end);
-        useAudioStore.getState().addInterval({ startTime: start, endTime: end });
-        region.remove();
-        toast.success("Interval created");
+  const handleRegionCreateRef = useRef(null);
+  handleRegionCreateRef.current = (region) => {
+    const start = formatTime(region.start);
+    const end = formatTime(region.end);
+    useAudioStore.getState().addInterval({ startTime: start, endTime: end });
+    region.remove();
+    toast.success("Interval created");
+  };
+
+  const handleMouseMove = useCallback(
+    (e) => {
+      const container = waveformContainerRef.current;
+      const ws = wavesurferRef.current;
+      if (!container || !ws || !isReady) return;
+
+      const rect = container.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const percent = Math.max(0, Math.min(1, x / rect.width));
+      setHover({ visible: true, x, time: percent * ws.getDuration() });
+    },
+    [isReady],
+  );
+
+  const handleMouseLeave = useCallback(() => {
+    setHover((prev) => ({ ...prev, visible: false }));
+  }, []);
+
+  useEffect(() => {
+    if (!waveformRef.current || !audioFile?.file) return;
+
+    if (wavesurferRef.current) {
+      regionsPluginRef.current?.getRegions().forEach((r) => r.remove());
+      wavesurferRef.current.destroy();
+      wavesurferRef.current = null;
+      regionsPluginRef.current = null;
+    }
+
+    setIsReady(false);
+    setIsPlaying(false);
+    setCurrentTime(0);
+
+    const ws = WaveSurfer.create({
+      container: waveformRef.current,
+      waveColor: cssVar("--color-wavesurfer-wave"),
+      progressColor: cssVar("--color-wavesurfer-progress"),
+      cursorColor: cssVar("--color-wavesurfer-cursor"),
+      height: 112,
+      partialRender: false,
+      normalize: true,
+    });
+
+    const rp = RegionsPlugin.create();
+    ws.registerPlugin(rp);
+    regionsPluginRef.current = rp;
+
+    rp.enableDragSelection();
+    rp.on("region-created", (region) => {
+      handleRegionCreateRef.current(region);
+    });
+
+    ws.on("ready", () => setIsReady(true));
+    ws.on("play", () => setIsPlaying(true));
+    ws.on("pause", () => setIsPlaying(false));
+    ws.on("timeupdate", (time) => setCurrentTime(time));
+    ws.on("finish", () => setIsPlaying(false));
+
+    ws.loadBlob(audioFile.file);
+    wavesurferRef.current = ws;
+
+    return () => {
+      rp?.getRegions().forEach((r) => r.remove());
+      ws.destroy();
+      wavesurferRef.current = null;
+      regionsPluginRef.current = null;
     };
+  }, [audioFile?.file]);
 
-    const handleMouseMove = useCallback((e) => {
-        const container = waveformContainerRef.current;
-        const ws = wavesurferRef.current;
-        if (!container || !ws || !isReady) return;
+  const togglePlayPause = () => {
+    if (wavesurferRef.current && isReady) {
+      wavesurferRef.current.playPause();
+    }
+  };
 
-        const rect = container.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const percent = Math.max(0, Math.min(1, x / rect.width));
-        const duration = ws.getDuration();
-        const time = percent * duration;
+  const handleVolumeChange = (e) => {
+    wavesurferRef.current?.setVolume(parseFloat(e.target.value));
+  };
 
-        setHover({ visible: true, x, time });
-    }, [isReady]);
+  if (!audioFile) return null;
 
-    const handleMouseLeave = useCallback(() => {
-        setHover((prev) => ({ ...prev, visible: false }));
-    }, []);
-
-    // Initialize WaveSurfer — only when the actual audio file changes
-    useEffect(() => {
-        if (!waveformRef.current || !audioFile?.file) return;
-
-        if (wavesurferRef.current) {
-            regionsPluginRef.current?.getRegions().forEach((r) => r.remove());
-            wavesurferRef.current.destroy();
-            wavesurferRef.current = null;
-            regionsPluginRef.current = null;
-        }
-
-        const wavesurfer = WaveSurfer.create({
-            container: waveformRef.current,
-            waveColor: "#4F46E5",
-            progressColor: "#818CF8",
-            cursorColor: "#4F46E5",
-            height: 128,
-            partialRender: false,
-            normalize: true,
-        });
-
-        const regionsPlugin = RegionsPlugin.create();
-        wavesurfer.registerPlugin(regionsPlugin);
-        regionsPluginRef.current = regionsPlugin;
-
-        regionsPlugin.enableDragSelection();
-        regionsPlugin.on("region-created", (region) => {
-            handleRegionCreateRef.current(region);
-        });
-
-        wavesurfer.on("ready", () => setIsReady(true));
-        wavesurfer.on("play", () => setIsPlaying(true));
-        wavesurfer.on("pause", () => setIsPlaying(false));
-        wavesurfer.on("timeupdate", (time) => setCurrentTime(time));
-        wavesurfer.on("finish", () => setIsPlaying(false));
-
-        wavesurfer.loadBlob(audioFile.file);
-
-        wavesurferRef.current = wavesurfer;
-
-        return () => {
-            regionsPlugin?.getRegions().forEach((r) => r.remove());
-            wavesurfer.destroy();
-            wavesurferRef.current = null;
-            regionsPluginRef.current = null;
-        };
-    }, [audioFile?.file]);
-
-    const togglePlayPause = () => {
-        if (wavesurferRef.current && isReady) {
-            wavesurferRef.current.playPause();
-        }
-    };
-
-    const handleVolumeChange = (e) => {
-        const volume = parseFloat(e.target.value);
-        wavesurferRef.current?.setVolume(volume);
-    };
-
-    if (!audioFile) return null;
-
-    return (
-        <div className="w-full max-w-4xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-            <div
-                ref={waveformContainerRef}
-                className="relative mb-4"
-                onMouseMove={handleMouseMove}
-                onMouseLeave={handleMouseLeave}
-            >
-                {!isReady && (
-                    <div className="absolute inset-0 z-10 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-700">
-                        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent dark:via-white/10" />
-                    </div>
-                )}
-                <div ref={waveformRef} className={!isReady ? "opacity-0" : ""} />
-                {hover.visible && (
-                    <div
-                        className="pointer-events-none absolute top-0 bottom-0 z-20"
-                        style={{ left: hover.x }}
-                    >
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5">
-                            <span className="inline-block rounded-md bg-gray-900 px-2 py-0.5 text-[11px] font-medium tracking-wide text-white shadow-lg whitespace-nowrap dark:bg-white dark:text-gray-900">
-                                {formatTimePrecise(hover.time)}
-                            </span>
-                        </div>
-                        <div className="h-full w-px bg-indigo-500 opacity-70" />
-                    </div>
-                )}
+  return (
+    <div className="relative rounded-lg border border-light bg-surface p-5">
+      {!isReady && (
+        <div className="absolute inset-0 z-10 overflow-hidden rounded-lg">
+          <div className="h-full w-full bg-[var(--color-skeleton)]" />
+          <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-[var(--color-skeleton-glow)] to-transparent" />
+          <div className="absolute top-2.5 bottom-2.5 left-5 right-5">
+            <div className="mb-3.5 h-[112px] rounded-md bg-black/[0.07] dark:bg-white/[0.07]" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-md bg-black/[0.07] dark:bg-white/[0.07]" />
+                <div className="h-4 w-28 rounded bg-black/[0.07] dark:bg-white/[0.07]" />
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-4 rounded bg-black/[0.07] dark:bg-white/[0.07]" />
+                <div className="h-1 w-24 rounded-full bg-black/[0.07] dark:bg-white/[0.07]" />
+              </div>
             </div>
-            <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                    {!isReady ? (
-                        <>
-                            <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700" />
-                            <div className="h-4 w-24 rounded bg-gray-200 dark:bg-gray-700" />
-                        </>
-                    ) : (
-                        <>
-                            <button
-                                onClick={togglePlayPause}
-                                className="p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            >
-                                {isPlaying ? (
-                                    <Pause className="w-6 h-6" />
-                                ) : (
-                                    <Play className="w-6 h-6" />
-                                )}
-                            </button>
-                            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                                {formatTime(currentTime)} /{" "}
-                                {audioFile?.duration
-                                    ? formatTime(audioFile.duration)
-                                    : "0:00"}
-                            </span>
-                        </>
-                    )}
-                </div>
-                {!isReady ? (
-                    <div className="flex items-center gap-2">
-                        <div className="h-5 w-5 rounded bg-gray-200 dark:bg-gray-700" />
-                        <div className="h-3 w-24 rounded bg-gray-200 dark:bg-gray-700" />
-                    </div>
-                ) : (
-                    <div className="flex items-center gap-2">
-                        <Volume2 className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                        <input
-                            type="range"
-                            min="0"
-                            max="1"
-                            step="0.05"
-                            defaultValue="1"
-                            className="w-24"
-                            onChange={handleVolumeChange}
-                        />
-                    </div>
-                )}
-            </div>
-            {!isReady ? (
-                <div className="mt-2 h-3 w-64 rounded bg-gray-200 dark:bg-gray-700" />
-            ) : (
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                    Tip: Click and drag on the waveform to create intervals
-                </p>
-            )}
+            <div className="mt-2.5 h-3 w-56 rounded bg-black/[0.07] dark:bg-white/[0.07]" />
+          </div>
         </div>
-    );
+      )}
+
+      <div className={!isReady ? "opacity-0" : ""}>
+        <div
+          ref={waveformContainerRef}
+          className="relative mb-3.5"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+        >
+          <div ref={waveformRef} />
+          {hover.visible && (
+            <div
+              className="pointer-events-none absolute bottom-0 top-0 z-20"
+              style={{ left: hover.x }}
+            >
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5">
+                <span className="whitespace-nowrap rounded-md bg-[var(--color-text)] px-2 py-0.5 text-[11px] font-medium tracking-wide text-[var(--color-bg)] shadow-sm">
+                  {formatTimeMs(hover.time)}
+                </span>
+              </div>
+              <div className="h-full w-px bg-[var(--color-primary)] opacity-60" />
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={togglePlayPause}
+              disabled={!isReady}
+              className="flex h-9 w-9 items-center justify-center rounded-md bg-[var(--color-primary)] text-white transition-colors hover:bg-[var(--color-primary-hover)] disabled:opacity-40"
+            >
+              {isPlaying ? (
+                <Pause className="h-[18px] w-[18px]" />
+              ) : (
+                <Play className="h-[18px] w-[18px]" />
+              )}
+            </button>
+            <span className="text-sm font-medium tabular-nums text-secondary">
+              {formatTime(currentTime)} /{" "}
+              {audioFile?.duration ? formatTime(audioFile.duration) : "0:00"}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Volume2 className="h-4 w-4 text-muted" />
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              defaultValue="1"
+              onChange={handleVolumeChange}
+              className="w-24"
+            />
+          </div>
+        </div>
+
+        {isReady && (
+          <p className="mt-2.5 text-xs text-muted">
+            Drag across the waveform to create an interval
+          </p>
+        )}
+      </div>
+    </div>
+  );
 }

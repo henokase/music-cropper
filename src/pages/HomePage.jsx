@@ -2,17 +2,18 @@ import { SiteDescription } from "../components/SiteDescription";
 import { AudioUploader } from "../components/AudioUploader";
 
 export function HomePage() {
-    return (
-        <main className="max-w-7xl mx-auto py-12 sm:px-6 lg:px-8">
-            <div className="px-4 sm:px-0">
-                <div className="flex flex-col gap-8">
-                    <h2 className="text-4xl text-center font-bold text-gray-900 dark:text-white mb-4">
-                        Trim Your Audio Files with Precision
-                    </h2>
-                    <AudioUploader />
-                    <SiteDescription mode="cropper" />
-                </div>
-            </div>
-        </main>
-    );
-} 
+  return (
+    <main className="mx-auto max-w-5xl px-5 py-10">
+      <div className="mb-14 text-center">
+        <h1 className="text-4xl font-semibold tracking-tight text-[var(--color-text)]">
+          Trim Your Audio Files with Precision
+        </h1>
+        <p className="mt-2.5 text-base text-secondary">
+          Upload, crop, and export audio clips in seconds
+        </p>
+      </div>
+      <AudioUploader />
+      <SiteDescription mode="cropper" />
+    </main>
+  );
+}

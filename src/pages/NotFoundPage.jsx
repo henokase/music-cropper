@@ -1,26 +1,27 @@
-import { useNavigate } from 'react-router-dom';
-import { Home } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
+import { Home } from "lucide-react";
 
 export function NotFoundPage() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    return (
-        <main className="max-w-7xl mx-auto py-12 sm:px-6 lg:px-8">
-            <div className="text-center">
-                <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                    404 - Page Not Found
-                </h1>
-                <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
-                    The page you're looking for doesn't exist.
-                </p>
-                <button
-                    onClick={() => navigate('/')}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 transition-colors"
-                >
-                    <Home className="w-5 h-5" />
-                    Go Home
-                </button>
-            </div>
-        </main>
-    );
-} 
+  return (
+    <main className="mx-auto max-w-5xl px-5 py-28 text-center">
+      <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-lg border border-light bg-surface">
+        <span className="text-xl font-semibold text-muted">404</span>
+      </div>
+      <h1 className="mb-1.5 text-xl font-semibold text-[var(--color-text)]">
+        Page not found
+      </h1>
+      <p className="mb-7 text-base text-secondary">
+        The page you&rsquo;re looking for doesn&rsquo;t exist.
+      </p>
+      <button
+        onClick={() => navigate("/")}
+        className="inline-flex items-center gap-1.5 rounded-md bg-[var(--color-primary)] px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-[var(--color-primary-hover)]"
+      >
+        <Home className="h-4 w-4" />
+        Go Home
+      </button>
+    </main>
+  );
+}

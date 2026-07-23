@@ -2,22 +2,220 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --color-bg: #faf8f5;
+    --color-surface: #ffffff;
+    --color-surface-hover: #f5f3f0;
+    --color-border: #e7e5e4;
+    --color-border-light: #f0eeeb;
+    --color-text: #1c1917;
+    --color-text-secondary: #57534e;
+    --color-text-muted: #a8a29e;
+    --color-primary: #d97706;
+    --color-primary-hover: #b45309;
+    --color-primary-subtle: #fef3c7;
+    --color-primary-ring: rgba(217, 119, 6, 0.3);
+    --color-danger: #dc2626;
+    --color-danger-subtle: #fef2f2;
+    --color-success: #65a30d;
+    --color-success-subtle: #f7fee7;
+    --color-wavesurfer-wave: #d97706;
+    --color-wavesurfer-progress: #f59e0b;
+    --color-wavesurfer-cursor: #d97706;
+    --color-skeleton: #e7e5e4;
+    --color-skeleton-glow: rgba(255, 255, 255, 0.5);
+    --sonner-bg: #ffffff;
+    --sonner-text: #1c1917;
+    --sonner-border: #e7e5e4;
+    --sonner-success-bg: #f7fee7;
+    --sonner-success-text: #3f6212;
+    --sonner-error-bg: #fef2f2;
+    --sonner-error-text: #991b1b;
+    --sonner-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  }
+
+  .dark {
+    --color-bg: #0f0e0c;
+    --color-surface: #1a1715;
+    --color-surface-hover: #231f1c;
+    --color-border: #292524;
+    --color-border-light: #231f1c;
+    --color-text: #fafaf9;
+    --color-text-secondary: #a8a29e;
+    --color-text-muted: #57534e;
+    --color-primary: #f59e0b;
+    --color-primary-hover: #d97706;
+    --color-primary-subtle: rgba(245, 158, 11, 0.12);
+    --color-primary-ring: rgba(245, 158, 11, 0.3);
+    --color-danger: #f87171;
+    --color-danger-subtle: rgba(248, 113, 113, 0.1);
+    --color-success: #84cc16;
+    --color-success-subtle: rgba(132, 204, 22, 0.1);
+    --color-wavesurfer-wave: #f59e0b;
+    --color-wavesurfer-progress: #fbbf24;
+    --color-wavesurfer-cursor: #f59e0b;
+    --color-skeleton: #231f1c;
+    --color-skeleton-glow: rgba(255, 255, 255, 0.12);
+    --sonner-bg: #1a1715;
+    --sonner-text: #fafaf9;
+    --sonner-border: #292524;
+    --sonner-success-bg: rgba(132, 204, 22, 0.12);
+    --sonner-success-text: #bef264;
+    --sonner-error-bg: rgba(248, 113, 113, 0.1);
+    --sonner-error-text: #fca5a5;
+    --sonner-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: "DM Sans", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: var(--color-primary-subtle);
+    color: var(--color-primary-hover);
+  }
+}
+
 @keyframes shimmer {
   100% {
     transform: translateX(100%);
   }
 }
 
-/* WaveSurfer.js region styling — visible during drag, removed after creation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Sonner custom styles */
+[data-sonner-toaster] {
+  --normal-bg: var(--sonner-bg) !important;
+  --normal-text: var(--sonner-text) !important;
+  --normal-border: var(--sonner-border) !important;
+  --success-bg: var(--sonner-success-bg) !important;
+  --success-text: var(--sonner-success-text) !important;
+  --error-bg: var(--sonner-error-bg) !important;
+  --error-text: var(--sonner-error-text) !important;
+  --toast-box-shadow: var(--sonner-shadow) !important;
+  font-family: "DM Sans", sans-serif !important;
+  font-size: 13px !important;
+}
+
+[data-sonner-toaster] [data-icon] {
+  opacity: 0.85;
+}
+
+[data-sonner-toaster] [data-close-button] {
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
+[data-sonner-toaster] [data-close-button]:hover {
+  opacity: 1;
+}
+
+/* WaveSurfer.js region styling — drag overlay */
 ::part(region),
 ::part(marker) {
-  background-color: rgba(23, 21, 58, 0.25);
-  border-left: 2px solid rgba(5, 4, 30, 0.6);
-  border-right: 2px solid rgba(5, 4, 30, 0.6);
+  background-color: rgba(17, 9, 1, 0.1) !important;
+  border-left: 2px solid rgba(217, 119, 6, 0.5) !important;
+  border-right: 2px solid rgba(217, 119, 6, 0.5) !important;
   pointer-events: none;
 }
 
 ::part(region-handle-left),
 ::part(region-handle-right) {
   display: none;
+}
+
+/* WaveSurfer cursor */
+::part(cursor) {
+  background-color: var(--color-wavesurfer-cursor) !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-text-muted);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
+}
+
+/* Range input styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  height: 4px;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  background: var(--color-border);
+  border-radius: 2px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  margin-top: -5px;
+  transition: transform 0.15s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+input[type="range"]::-moz-range-track {
+  height: 4px;
+  background: var(--color-border);
+  border-radius: 2px;
+  border: none;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  border: none;
 }
