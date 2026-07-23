@@ -1,3 +1,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* WaveSurfer.js region styling — visible during drag, removed after creation */
+::part(region),
+::part(marker) {
+  background-color: rgba(23, 21, 58, 0.25);
+  border-left: 2px solid rgba(5, 4, 30, 0.6);
+  border-right: 2px solid rgba(5, 4, 30, 0.6);
+  pointer-events: none;
+}
+
+::part(region-handle-left),
+::part(region-handle-right) {
+  display: none;
+}
