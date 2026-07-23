@@ -126,10 +126,15 @@ export function AudioPlayer() {
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
             >
-                <div ref={waveformRef} />
+                {!isReady && (
+                    <div className="absolute inset-0 z-10 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-700">
+                        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent dark:via-white/10" />
+                    </div>
+                )}
+                <div ref={waveformRef} className={!isReady ? "opacity-0" : ""} />
                 {hover.visible && (
                     <div
-                        className="pointer-events-none absolute top-0 bottom-0 z-10"
+                        className="pointer-events-none absolute top-0 bottom-0 z-20"
                         style={{ left: hover.x }}
                     >
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5">
@@ -143,42 +148,59 @@ export function AudioPlayer() {
             </div>
             <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <button
-                        onClick={togglePlayPause}
-                        disabled={!isReady}
-                        className={`p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                            !isReady ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
-                    >
-                        {isPlaying ? (
-                            <Pause className="w-6 h-6" />
-                        ) : (
-                            <Play className="w-6 h-6" />
-                        )}
-                    </button>
-                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                        {formatTime(currentTime)} /{" "}
-                        {audioFile?.duration
-                            ? formatTime(audioFile.duration)
-                            : "0:00"}
-                    </span>
+                    {!isReady ? (
+                        <>
+                            <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700" />
+                            <div className="h-4 w-24 rounded bg-gray-200 dark:bg-gray-700" />
+                        </>
+                    ) : (
+                        <>
+                            <button
+                                onClick={togglePlayPause}
+                                className="p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            >
+                                {isPlaying ? (
+                                    <Pause className="w-6 h-6" />
+                                ) : (
+                                    <Play className="w-6 h-6" />
+                                )}
+                            </button>
+                            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                                {formatTime(currentTime)} /{" "}
+                                {audioFile?.duration
+                                    ? formatTime(audioFile.duration)
+                                    : "0:00"}
+                            </span>
+                        </>
+                    )}
                 </div>
-                <div className="flex items-center gap-2">
-                    <Volume2 className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                    <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.05"
-                        defaultValue="1"
-                        className="w-24"
-                        onChange={handleVolumeChange}
-                    />
-                </div>
+                {!isReady ? (
+                    <div className="flex items-center gap-2">
+                        <div className="h-5 w-5 rounded bg-gray-200 dark:bg-gray-700" />
+                        <div className="h-3 w-24 rounded bg-gray-200 dark:bg-gray-700" />
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-2">
+                        <Volume2 className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                        <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.05"
+                            defaultValue="1"
+                            className="w-24"
+                            onChange={handleVolumeChange}
+                        />
+                    </div>
+                )}
             </div>
-            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                Tip: Click and drag on the waveform to create intervals
-            </p>
+            {!isReady ? (
+                <div className="mt-2 h-3 w-64 rounded bg-gray-200 dark:bg-gray-700" />
+            ) : (
+                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                    Tip: Click and drag on the waveform to create intervals
+                </p>
+            )}
         </div>
     );
 }

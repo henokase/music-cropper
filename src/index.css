@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 /* WaveSurfer.js region styling — visible during drag, removed after creation */
 ::part(region),
 ::part(marker) {
