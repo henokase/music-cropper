@@ -1,4 +1,4 @@
-import { Trash2, Scissors, Download } from "lucide-react";
+import { Trash2, Scissors, Download, Layers, CheckCircle2 } from "lucide-react";
 import { useAudioStore } from "../store/useAudioStore";
 import { audioBufferToWav } from "../utils/audioUtils";
 import JSZip from "jszip";
@@ -59,15 +59,15 @@ export function IntervalList() {
       const dl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = dl;
-      a.download = "cropped_audio.zip";
+      a.download = `${audioFile.file.name.split(".")[0]}_all_crops.zip`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(dl);
-      toast.success("All intervals exported");
+      toast.success("Batch ZIP archive successfully generated & downloaded!");
     } catch (err) {
       console.error(err);
-      toast.error("Export failed");
+      toast.error("Export failed during zip compilation");
     } finally {
       setIsProcessing(false);
       setProgress(0);
@@ -116,10 +116,10 @@ export function IntervalList() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(dl);
-      toast.success("Interval downloaded");
+      toast.success(`WAV clip exported: ${interval.startTime} → ${interval.endTime}`);
     } catch (err) {
       console.error(err);
-      toast.error("Crop failed");
+      toast.error("Audio crop failed");
     } finally {
       setIsProcessing(false);
       setProgress(0);
@@ -127,64 +127,80 @@ export function IntervalList() {
   };
 
   return (
-    <div className="rounded-lg border border-light bg-surface p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-base font-medium text-[var(--color-text)]">
-          Intervals
-          {intervals.length > 0 && (
-            <span className="ml-1.5 text-sm text-muted">
-              ({intervals.length})
-            </span>
-          )}
-        </h3>
-        {intervals.length > 1 && (
+    <div className="relative overflow-hidden rounded-2xl border border-glass bg-surface/80 p-6 shadow-card-glass backdrop-blur-xl">
+      <div className="mb-5 flex items-center justify-between border-b border-glass pb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500 ring-1 ring-amber-500/20">
+            <Layers className="h-4 w-4" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-primary">
+              Cut Intervals
+            </h3>
+            <p className="text-[11px] text-muted">
+              {intervals.length} {intervals.length === 1 ? "clip ready" : "clips queued"}
+            </p>
+          </div>
+        </div>
+
+        {intervals.length > 0 && (
           <button
             onClick={handleCropAll}
             disabled={isProcessing}
-            className="flex items-center gap-1.5 rounded-md bg-[var(--color-primary)] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[var(--color-primary-hover)] disabled:opacity-40"
+            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-amber-500/20 transition-all duration-200 hover:from-amber-600 hover:to-amber-700 hover:shadow-glow-sm disabled:opacity-40"
           >
             <Download className="h-4 w-4" />
-            Export All
+            <span>Export All (ZIP)</span>
           </button>
         )}
       </div>
 
       {isProcessing && (
-        <div className="mb-4">
+        <div className="mb-5 rounded-xl bg-surface-hover/80 p-4 border border-glass">
           <ProgressBar progress={progress} />
         </div>
       )}
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2.5">
         {intervals.length === 0 ? (
-          <p className="py-5 text-center text-sm text-muted">
-            No intervals yet &mdash; drag on the waveform or add one manually
-          </p>
+          <div className="flex flex-col items-center justify-center py-10 text-center rounded-xl bg-surface-hover/30 border border-dashed border-glass">
+            <p className="text-sm font-semibold text-primary">No intervals added yet</p>
+            <p className="mt-1 text-xs text-muted max-w-xs">
+              Drag on the waveform player above or use the manual entry form to create your audio cuts.
+            </p>
+          </div>
         ) : (
-          intervals.map((interval) => (
+          intervals.map((interval, idx) => (
             <div
               key={interval.id}
-              className="flex items-center justify-between rounded-md border border-light bg-[var(--color-bg)] px-3.5 py-2.5 transition-colors hover:border-[var(--color-border)]"
+              className="group flex items-center justify-between rounded-xl border border-glass bg-surface/90 px-4 py-3 shadow-sm transition-all duration-200 hover:border-amber-500/40 hover:bg-surface hover:shadow-glow-sm"
             >
-              <span className="text-sm font-medium tabular-nums text-secondary">
-                {interval.startTime}
-                <span className="mx-2 text-muted">&rarr;</span>
-                {interval.endTime}
-              </span>
-              <div className="flex items-center gap-0.5">
+              <div className="flex items-center gap-3">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500/10 text-[11px] font-mono font-bold text-amber-500">
+                  #{idx + 1}
+                </span>
+                <span className="text-sm font-mono font-bold text-primary">
+                  {interval.startTime}
+                  <span className="mx-2 text-amber-500">&rarr;</span>
+                  {interval.endTime}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => handleCrop(interval)}
                   disabled={isProcessing}
-                  className="flex h-8 w-8 items-center justify-center rounded text-muted transition-colors hover:bg-surface-hover hover:text-[var(--color-text)]"
-                  title="Crop & download"
+                  className="flex items-center gap-1.5 rounded-lg border border-glass bg-surface-hover/60 px-3 py-1.5 text-xs font-semibold text-primary transition-all duration-200 hover:border-amber-500/40 hover:bg-amber-500 hover:text-slate-950 hover:shadow-glow-sm disabled:opacity-40"
+                  title="Crop and download WAV clip"
                 >
-                  <Scissors className="h-4 w-4" />
+                  <Scissors className="h-3.5 w-3.5" />
+                  {/* <span>Download WAV</span> */}
                 </button>
                 <button
                   onClick={() => removeInterval(interval.id)}
                   disabled={isProcessing}
-                  className="flex h-8 w-8 items-center justify-center rounded text-muted transition-colors hover:bg-surface-hover hover:text-[var(--color-danger)]"
-                  title="Remove"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-muted transition-colors hover:bg-rose-500/10 hover:text-rose-500 disabled:opacity-40"
+                  title="Remove interval"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>

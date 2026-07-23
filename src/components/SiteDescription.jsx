@@ -1,4 +1,4 @@
-import { Upload, Scissors, Download } from "lucide-react";
+import { Upload, Scissors, Download, ShieldCheck, Zap } from "lucide-react";
 
 export function SiteDescription({ mode }) {
   const descriptions = {
@@ -6,18 +6,21 @@ export function SiteDescription({ mode }) {
       features: [
         {
           icon: Upload,
-          title: "Upload",
-          description: "MP3, WAV, OGG, AAC up to 200MB",
+          title: "Drag & Drop Upload",
+          description: "Supports MP3, WAV, OGG, M4A, AAC files up to 200MB.",
+          badge: "Browser Native",
         },
         {
           icon: Scissors,
-          title: "Crop",
-          description: "Set precise start and end times",
+          title: "Precision Wave Trimming",
+          description: "Visual waveform selection or frame-accurate timestamp inputs.",
+          badge: "Lossless Quality",
         },
         {
           icon: Download,
-          title: "Export",
-          description: "Download as WAV or ZIP batch",
+          title: "Batch Exporting",
+          description: "Export individual clips or package all intervals into a single ZIP.",
+          badge: "Instant WAV",
         },
       ],
     },
@@ -26,21 +29,40 @@ export function SiteDescription({ mode }) {
   const current = descriptions[mode];
 
   return (
-    <div className="mx-auto grid max-w-3xl grid-cols-3 gap-4">
-      {current.features.map((feature, index) => (
-        <div
-          key={index}
-          className="rounded-lg border border-light bg-surface p-5 text-center transition-colors hover:bg-surface-hover"
-        >
-          <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-md bg-[var(--color-primary-subtle)]">
-            <feature.icon className="h-5 w-5 text-[var(--color-primary)]" />
+    <section className="mx-auto mt-16 max-w-5xl">
+      <div className="mb-8 text-center">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-amber-500">
+          Built For Speed & Accuracy
+        </h2>
+        <p className="mt-1 text-xl font-bold tracking-tight text-primary">
+          Professional Audio Trimming Features
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        {current.features.map((feature, index) => (
+          <div
+            key={index}
+            className="group relative overflow-hidden rounded-2xl border border-glass bg-surface/60 p-6 shadow-sm backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/40 hover:bg-surface/90 hover:shadow-glow-sm"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500 ring-1 ring-amber-500/20 transition-transform duration-300 group-hover:scale-110">
+                <feature.icon className="h-5.5 w-5.5" />
+              </div>
+              <span className="rounded-full bg-surface-hover px-2.5 py-0.5 text-[10px] font-semibold text-secondary border border-glass">
+                {feature.badge}
+              </span>
+            </div>
+
+            <h3 className="text-base font-bold text-primary transition-colors group-hover:text-amber-500">
+              {feature.title}
+            </h3>
+            <p className="mt-2 text-xs leading-relaxed text-secondary">
+              {feature.description}
+            </p>
           </div>
-          <h3 className="text-base font-medium text-[var(--color-text)]">
-            {feature.title}
-          </h3>
-          <p className="mt-1 text-sm text-muted">{feature.description}</p>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    </section>
   );
 }

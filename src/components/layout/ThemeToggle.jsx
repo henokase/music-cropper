@@ -4,9 +4,9 @@ import { Sun, Moon } from "lucide-react";
 export function ThemeToggle() {
   const [theme, setTheme] = useState(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("theme") || "light";
+      return localStorage.getItem("theme") || "dark";
     }
-    return "light";
+    return "dark";
   });
 
   useEffect(() => {
@@ -29,11 +29,12 @@ export function ThemeToggle() {
     <button
       onClick={toggleTheme}
       onAnimationEnd={() => setSpinning(false)}
-      className="group relative flex h-9 w-9 items-center justify-center rounded-full border border-light text-amber-600 transition-colors hover:bg-surface-hover dark:text-amber-500"
+      className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-glass bg-surface/60 text-amber-500 shadow-sm transition-all duration-200 hover:border-amber-500/50 hover:bg-surface-hover hover:shadow-glow-sm"
       aria-label={`Switch to ${isLight ? "dark" : "light"} mode`}
+
     >
-      <span className={spinning ? "animate-[spin_0.4s_ease-out]" : ""}>
-        {isLight ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+      <span className={spinning ? "animate-[spin_0.5s_cubic-bezier(0.175,0.885,0.32,1.275)]" : "transition-transform duration-200 hover:scale-110"}>
+        {isLight ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4 text-amber-400" />}
       </span>
     </button>
   );

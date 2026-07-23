@@ -1,26 +1,26 @@
 import { useNavigate } from "react-router-dom";
-import { Home } from "lucide-react";
+import { Home, AlertCircle } from "lucide-react";
 
 export function NotFoundPage() {
   const navigate = useNavigate();
 
   return (
-    <main className="mx-auto max-w-5xl px-5 py-28 text-center">
-      <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-lg border border-light bg-surface">
-        <span className="text-xl font-semibold text-muted">404</span>
+    <main className="mx-auto max-w-5xl px-4 py-24 text-center">
+      <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl border border-glass bg-surface/80 shadow-card-glass backdrop-blur-xl">
+        <AlertCircle className="h-10 w-10 text-amber-500" />
       </div>
-      <h1 className="mb-1.5 text-xl font-semibold text-[var(--color-text)]">
-        Page not found
+      <h1 className="mb-2 text-3xl font-extrabold text-primary">
+        Page Not Found
       </h1>
-      <p className="mb-7 text-base text-secondary">
-        The page you&rsquo;re looking for doesn&rsquo;t exist.
+      <p className="mb-8 text-sm text-secondary max-w-md mx-auto">
+        The requested page or audio workspace path could not be located.
       </p>
       <button
         onClick={() => navigate("/")}
-        className="inline-flex items-center gap-1.5 rounded-md bg-[var(--color-primary)] px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-[var(--color-primary-hover)]"
+        className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-amber-500/20 transition-all hover:from-amber-600 hover:to-amber-700 hover:shadow-glow-sm"
       >
         <Home className="h-4 w-4" />
-        Go Home
+        Return to Home Studio
       </button>
     </main>
   );

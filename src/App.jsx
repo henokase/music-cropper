@@ -22,11 +22,11 @@ function App() {
           </Routes>
         </Layout>
         <Toaster
-          position="bottom-left"
-          gap={8}
+          position="bottom-right"
+          gap={10}
+          closeButton
           toastOptions={{
-            duration: 3000,
-            className: "animate-fade-in",
+            duration: 3500,
           }}
         />
       </ErrorBoundary>

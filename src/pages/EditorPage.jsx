@@ -18,11 +18,17 @@ export function EditorPage() {
   if (audioFile === null) return null;
 
   return (
-    <main className="mx-auto max-w-4xl px-5 py-10">
+    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:py-10">
       <div className="flex flex-col gap-6">
         <AudioPlayer />
-        <IntervalForm />
-        <IntervalList />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="lg:col-span-5">
+            <IntervalForm />
+          </div>
+          <div className="lg:col-span-7">
+            <IntervalList />
+          </div>
+        </div>
       </div>
     </main>
   );

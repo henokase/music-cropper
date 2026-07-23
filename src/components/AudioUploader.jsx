@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { Upload } from "lucide-react";
+import { Upload, Music, ShieldCheck } from "lucide-react";
 import { useAudioStore } from "../store/useAudioStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -51,6 +51,7 @@ export function AudioUploader() {
           setAudioFile(file, audio.duration);
           navigate("/editor");
           setIsLoading(false);
+          toast.success("Audio loaded successfully!");
         };
 
         audio.onerror = () => {
@@ -95,43 +96,41 @@ export function AudioUploader() {
   }, []);
 
   return (
-    <div className="mx-auto mb-16 max-w-xl">
+    <div className="mx-auto max-w-xl">
       <label
         htmlFor="audio-upload"
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-12 transition-all duration-200 ${
+        className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 text-center transition-all duration-200 ${
           isLoading
-            ? "border-[var(--color-primary)] bg-[var(--color-primary-subtle)]"
+            ? "border-amber-500 bg-amber-500/10"
             : isDragOver
-              ? "border-[var(--color-primary)] bg-[var(--color-primary-subtle)]"
-              : "border-[var(--color-border)] hover:border-[var(--color-primary)] hover:bg-[var(--color-surface-hover)]"
+              ? "border-amber-500 bg-amber-500/10"
+              : "border-border bg-surface hover:border-amber-500/60 hover:bg-surface-hover"
         }`}
       >
         {isLoading ? (
-          <div className="flex flex-col items-center">
-            <div className="mb-3 h-9 w-9 animate-spin rounded-full border-2 border-[var(--color-border)] border-t-[var(--color-primary)]" />
-            <p className="text-base font-medium text-[var(--color-primary)]">
-              Loading audio&hellip;
-            </p>
+          <div className="flex flex-col items-center py-4">
+            <div className="h-10 w-10 animate-spin rounded-full border-2 border-amber-500/20 border-t-amber-500 mb-3" />
+            <p className="text-sm font-semibold text-primary">Loading audio track...</p>
           </div>
         ) : (
-          <div className="flex flex-col items-center">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--color-primary-subtle)]">
-              <Upload className="h-6 w-6 text-[var(--color-primary)]" />
+          <div className="flex flex-col items-center py-2">
+            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500">
+              <Upload className="h-6 w-6" />
             </div>
-            <p className="text-base text-secondary">
-              <span className="font-medium text-[var(--color-text)]">
-                Choose a file
-              </span>{" "}
-              or drag it here
+
+            <p className="text-sm font-semibold text-primary">
+              Choose an audio file <span className="font-normal text-secondary">or drag & drop</span>
             </p>
-            <p className="mt-1 text-sm text-muted">
-              MP3, WAV, OGG, M4A, AAC &mdash; up to 200MB
+
+            <p className="mt-1 text-xs text-muted">
+              MP3, WAV, OGG, M4A, AAC up to 200MB
             </p>
           </div>
         )}
+
         <input
           id="audio-upload"
           type="file"
@@ -141,6 +140,11 @@ export function AudioUploader() {
           disabled={isLoading}
         />
       </label>
+
+      <div className="mt-3 flex items-center justify-center gap-1.5 text-xs text-muted">
+        <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+        <span>100% Private &mdash; Processes locally in your browser</span>
+      </div>
     </div>
   );
 }

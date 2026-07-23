@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAudioStore } from "../store/useAudioStore";
-import { Plus } from "lucide-react";
+import { Plus, Clock } from "lucide-react";
 import { toast } from "sonner";
 
 export function IntervalForm() {
@@ -24,7 +24,7 @@ export function IntervalForm() {
     e.preventDefault();
 
     if (!validateTimeFormat(startTime) || !validateTimeFormat(endTime)) {
-      toast.error("Use mm:ss or h:mm:ss format");
+      toast.error("Invalid format! Use mm:ss or h:mm:ss format (e.g. 0:15)");
       return;
     }
 
@@ -33,36 +33,45 @@ export function IntervalForm() {
     const duration = audioFile?.duration || 0;
 
     if (startSeconds >= endSeconds) {
-      toast.error("End must be after start");
+      toast.error("End timestamp must be greater than start timestamp");
       return;
     }
 
     if (endSeconds > duration) {
-      toast.error("Interval exceeds audio duration");
+      toast.error("Interval timestamp exceeds audio track length");
       return;
     }
 
     addInterval({ startTime, endTime });
     setStartTime("");
     setEndTime("");
-    toast.success("Interval added");
+    toast.success(`Created interval ${startTime} → ${endTime}`);
   };
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-lg border border-light bg-surface p-5"
+      className="relative overflow-hidden rounded-2xl border border-glass bg-surface/80 p-6 shadow-card-glass backdrop-blur-xl"
     >
-      <h3 className="mb-3.5 text-base font-medium text-[var(--color-text)]">
-        Add Interval
-      </h3>
-      <div className="flex items-end gap-2.5">
-        <div className="min-w-0 flex-1">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500 ring-1 ring-amber-500/20">
+            <Clock className="h-4 w-4" />
+          </div>
+          <h3 className="text-base font-bold text-primary">
+            Manual Interval Entry
+          </h3>
+        </div>
+        <span className="text-[11px] text-muted">Format: mm:ss</span>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+        <div className="sm:col-span-5">
           <label
             htmlFor="startTime"
-            className="mb-1 block text-xs font-medium text-secondary"
+            className="mb-1.5 block text-xs font-semibold text-secondary"
           >
-            Start
+            Start Timestamp
           </label>
           <input
             type="text"
@@ -70,32 +79,36 @@ export function IntervalForm() {
             placeholder="0:00"
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
-            className="w-full rounded-md border border-light bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] placeholder-muted transition-colors focus:border-[var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-ring)]"
+            className="w-full rounded-xl border border-glass bg-base px-3.5 py-2 text-sm font-mono text-[var(--color-text)] placeholder-muted transition-all duration-200 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
           />
         </div>
-        <div className="min-w-0 flex-1">
+
+        <div className="sm:col-span-5">
           <label
             htmlFor="endTime"
-            className="mb-1 block text-xs font-medium text-secondary"
+            className="mb-1.5 block text-xs font-semibold text-secondary"
           >
-            End
+            End Timestamp
           </label>
           <input
             type="text"
             id="endTime"
-            placeholder="0:00"
+            placeholder="1:30"
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
-            className="w-full rounded-md border border-light bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] placeholder-muted transition-colors focus:border-[var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-ring)]"
+            className="w-full rounded-xl border border-glass bg-base px-3.5 py-2 text-sm font-mono text-[var(--color-text)] placeholder-muted transition-all duration-200 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
           />
         </div>
-        <button
-          type="submit"
-          className="flex h-9 shrink-0 items-center gap-1.5 rounded-md bg-[var(--color-primary)] px-4 text-sm font-medium text-white transition-colors hover:bg-[var(--color-primary-hover)]"
-        >
-          <Plus className="h-4 w-4" />
-          Add
-        </button>
+
+        <div className="sm:col-span-2">
+          <button
+            type="submit"
+            className="flex h-10 w-full items-center justify-center rounded-xl bg-amber-500 font-semibold text-slate-950 shadow-md shadow-amber-500/20 transition-all duration-200 hover:bg-amber-400 hover:shadow-glow-sm"
+          >
+            <Plus className="h-4 w-4 stroke-[3]" />
+            {/* <span className="text-xs">Add</span> */}
+          </button>
+        </div>
       </div>
     </form>
   );
