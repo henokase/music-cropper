@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import WaveSurfer from "wavesurfer.js";
 import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.js";
 import { Play, Pause, Volume2 } from "lucide-react";
@@ -11,14 +11,24 @@ function formatTime(seconds) {
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 }
 
+function formatTimePrecise(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    const ms = Math.floor((seconds % 1) * 100);
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}.${ms.toString().padStart(2, "0")}`;
+}
+
 export function AudioPlayer() {
     const audioFile = useAudioStore((state) => state.audioFile);
     const waveformRef = useRef(null);
     const wavesurferRef = useRef(null);
     const regionsPluginRef = useRef(null);
+    const hoverRef = useRef(null);
+    const waveformContainerRef = useRef(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isReady, setIsReady] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
+    const [hover, setHover] = useState({ visible: false, x: 0, time: 0 });
 
     const handleRegionCreateRef = useRef(null);
     handleRegionCreateRef.current = (region) => {
@@ -28,6 +38,24 @@ export function AudioPlayer() {
         region.remove();
         toast.success("Interval created");
     };
+
+    const handleMouseMove = useCallback((e) => {
+        const container = waveformContainerRef.current;
+        const ws = wavesurferRef.current;
+        if (!container || !ws || !isReady) return;
+
+        const rect = container.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const percent = Math.max(0, Math.min(1, x / rect.width));
+        const duration = ws.getDuration();
+        const time = percent * duration;
+
+        setHover({ visible: true, x, time });
+    }, [isReady]);
+
+    const handleMouseLeave = useCallback(() => {
+        setHover((prev) => ({ ...prev, visible: false }));
+    }, []);
 
     // Initialize WaveSurfer — only when the actual audio file changes
     useEffect(() => {
@@ -92,7 +120,27 @@ export function AudioPlayer() {
 
     return (
         <div className="w-full max-w-4xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-            <div ref={waveformRef} className="mb-4" />
+            <div
+                ref={waveformContainerRef}
+                className="relative mb-4"
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+            >
+                <div ref={waveformRef} />
+                {hover.visible && (
+                    <div
+                        className="pointer-events-none absolute top-0 bottom-0 z-10"
+                        style={{ left: hover.x }}
+                    >
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5">
+                            <span className="inline-block rounded-md bg-gray-900 px-2 py-0.5 text-[11px] font-medium tracking-wide text-white shadow-lg whitespace-nowrap dark:bg-white dark:text-gray-900">
+                                {formatTimePrecise(hover.time)}
+                            </span>
+                        </div>
+                        <div className="h-full w-px bg-indigo-500 opacity-70" />
+                    </div>
+                )}
+            </div>
             <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <button
