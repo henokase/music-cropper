@@ -140,7 +140,7 @@ export function AudioPlayer() {
     }
   };
 
-  // Keyboard Shortcuts: Space (Play/Pause), ArrowUp (Vol +), ArrowDown (Vol -)
+  // Keyboard Shortcuts: Space (Play/Pause), ArrowUp/Down (Vol), ArrowLeft/Right (Seek 5s)
   useEffect(() => {
     const handleKeyDown = (e) => {
       const activeTag = document.activeElement?.tagName.toLowerCase();
@@ -169,6 +169,21 @@ export function AudioPlayer() {
           setIsMuted(nextVol === 0);
           return nextVol;
         });
+      } else if (e.code === "ArrowLeft") {
+        e.preventDefault();
+        const ws = wavesurferRef.current;
+        if (ws) {
+          const currentTime = ws.getCurrentTime();
+          ws.setTime(Math.max(0, currentTime - 5));
+        }
+      } else if (e.code === "ArrowRight") {
+        e.preventDefault();
+        const ws = wavesurferRef.current;
+        if (ws) {
+          const currentTime = ws.getCurrentTime();
+          const duration = ws.getDuration();
+          ws.setTime(Math.min(duration, currentTime + 5));
+        }
       }
     };
 
@@ -300,6 +315,10 @@ export function AudioPlayer() {
           <div className="flex items-center gap-1 rounded-md bg-surface-hover px-2 py-0.5 border border-glass">
             <kbd className="font-mono font-bold text-primary text-[10px]">↑ / ↓</kbd>
             <span>Volume</span>
+          </div>
+          <div className="flex items-center gap-1 rounded-md bg-surface-hover px-2 py-0.5 border border-glass">
+            <kbd className="font-mono font-bold text-primary text-[10px]">← / →</kbd>
+            <span>Seek 5s</span>
           </div>
         </div>
       </div>
