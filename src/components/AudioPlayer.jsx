@@ -115,11 +115,11 @@ export function AudioPlayer() {
     };
   }, [audioFile?.file]);
 
-  const togglePlayPause = () => {
+  const togglePlayPause = useCallback(() => {
     if (wavesurferRef.current && isReady) {
       wavesurferRef.current.playPause();
     }
-  };
+  }, [isReady]);
 
   const handleVolumeChange = (e) => {
     const val = parseFloat(e.target.value);
@@ -139,6 +139,42 @@ export function AudioPlayer() {
       setIsMuted(true);
     }
   };
+
+  // Keyboard Shortcuts: Space (Play/Pause), ArrowUp (Vol +), ArrowDown (Vol -)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const activeTag = document.activeElement?.tagName.toLowerCase();
+      if (activeTag === "input" || activeTag === "textarea" || activeTag === "button") {
+        if (activeTag === "input" && document.activeElement?.type === "text") {
+          return; // Allow normal typing in text input boxes
+        }
+      }
+
+      if (e.code === "Space") {
+        e.preventDefault();
+        togglePlayPause();
+      } else if (e.code === "ArrowUp") {
+        e.preventDefault();
+        setVolume((prevVol) => {
+          const nextVol = Math.min(1, Math.round((prevVol + 0.05) * 100) / 100);
+          wavesurferRef.current?.setVolume(nextVol);
+          setIsMuted(nextVol === 0);
+          return nextVol;
+        });
+      } else if (e.code === "ArrowDown") {
+        e.preventDefault();
+        setVolume((prevVol) => {
+          const nextVol = Math.max(0, Math.round((prevVol - 0.05) * 100) / 100);
+          wavesurferRef.current?.setVolume(nextVol);
+          setIsMuted(nextVol === 0);
+          return nextVol;
+        });
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [togglePlayPause]);
 
   if (!audioFile) return null;
 
@@ -251,6 +287,19 @@ export function AudioPlayer() {
               onChange={handleVolumeChange}
               className="w-24"
             />
+          </div>
+        </div>
+
+        {/* Small Keyboard Shortcuts Description Badge */}
+        <div className="hidden mt-4 sm:flex flex-wrap items-center gap-2 pt-3 border-t border-glass text-[11px] text-muted">
+          <span className="font-semibold text-secondary">Shortcuts:</span>
+          <div className="flex items-center gap-1 rounded-md bg-surface-hover px-2 py-0.5 border border-glass">
+            <kbd className="font-mono font-bold text-primary text-[10px]">Space</kbd>
+            <span>Play/Pause</span>
+          </div>
+          <div className="flex items-center gap-1 rounded-md bg-surface-hover px-2 py-0.5 border border-glass">
+            <kbd className="font-mono font-bold text-primary text-[10px]">↑ / ↓</kbd>
+            <span>Volume</span>
           </div>
         </div>
       </div>

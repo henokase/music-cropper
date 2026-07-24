@@ -93,7 +93,7 @@ export function IntervalForm() {
           <input
             type="text"
             id="endTime"
-            placeholder="1:30"
+            placeholder="0:00"
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
             className="w-full rounded-xl border border-glass bg-base px-3.5 py-2 text-sm font-mono text-[var(--color-text)] placeholder-muted transition-all duration-200 focus:border-[#2C8179] focus:outline-none focus:ring-2 focus:ring-[#2C8179]/20"
