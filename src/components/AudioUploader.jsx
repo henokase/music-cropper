@@ -104,28 +104,28 @@ export function AudioUploader() {
         onDragLeave={handleDragLeave}
         className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 text-center transition-all duration-200 ${
           isLoading
-            ? "border-amber-500 bg-amber-500/10"
+            ? "border-[#2C8179] bg-[#2C8179]/10"
             : isDragOver
-              ? "border-amber-500 bg-amber-500/10"
-              : "border-border bg-surface hover:border-amber-500/60 hover:bg-surface-hover"
+              ? "border-[#2C8179] bg-[#2C8179]/10"
+              : "border-border bg-surface hover:border-[#2C8179]/60 hover:bg-surface-hover"
         }`}
       >
         {isLoading ? (
           <div className="flex flex-col items-center py-4">
-            <div className="h-10 w-10 animate-spin rounded-full border-2 border-amber-500/20 border-t-amber-500 mb-3" />
+            <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#2C8179]/20 border-t-[#2C8179] mb-3" />
             <p className="text-sm font-semibold text-primary">Loading audio track...</p>
           </div>
         ) : (
-          <div className="flex flex-col items-center py-2">
-            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500">
+          <div className="flex flex-col items-center py-6">
+            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-[#2C8179]/10 text-[#2C8179]">
               <Upload className="h-6 w-6" />
             </div>
 
-            <p className="text-sm font-semibold text-primary">
+            <p className="text-lg font-semibold text-primary">
               Choose an audio file <span className="font-normal text-secondary">or drag & drop</span>
             </p>
 
-            <p className="mt-1 text-xs text-muted">
+            <p className="mt-1 text-xs   text-muted">
               MP3, WAV, OGG, M4A, AAC up to 200MB
             </p>
           </div>

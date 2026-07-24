@@ -29,12 +29,12 @@ export function ThemeToggle() {
     <button
       onClick={toggleTheme}
       onAnimationEnd={() => setSpinning(false)}
-      className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-glass bg-surface/60 text-amber-500 shadow-sm transition-all duration-200 hover:border-amber-500/50 hover:bg-surface-hover hover:shadow-glow-sm"
+      className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-glass bg-surface/60 text-[#2C8179] shadow-sm transition-all duration-200 hover:border-[#2C8179]/50 hover:bg-surface-hover hover:shadow-glow-sm"
       aria-label={`Switch to ${isLight ? "dark" : "light"} mode`}
 
     >
       <span className={spinning ? "animate-[spin_0.5s_cubic-bezier(0.175,0.885,0.32,1.275)]" : "transition-transform duration-200 hover:scale-110"}>
-        {isLight ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4 text-amber-400" />}
+        {isLight ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4 text-[#2C8179]" />}
       </span>
     </button>
   );

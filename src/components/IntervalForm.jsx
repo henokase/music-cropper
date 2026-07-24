@@ -55,7 +55,7 @@ export function IntervalForm() {
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500 ring-1 ring-amber-500/20">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#2C8179]/10 text-[#2C8179] ring-1 ring-[#2C8179]/20">
             <Clock className="h-4 w-4" />
           </div>
           <h3 className="text-base font-bold text-primary">
@@ -79,7 +79,7 @@ export function IntervalForm() {
             placeholder="0:00"
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
-            className="w-full rounded-xl border border-glass bg-base px-3.5 py-2 text-sm font-mono text-[var(--color-text)] placeholder-muted transition-all duration-200 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+            className="w-full rounded-xl border border-glass bg-base px-3.5 py-2 text-sm font-mono text-[var(--color-text)] placeholder-muted transition-all duration-200 focus:border-[#2C8179] focus:outline-none focus:ring-2 focus:ring-[#2C8179]/20"
           />
         </div>
 
@@ -96,14 +96,14 @@ export function IntervalForm() {
             placeholder="1:30"
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
-            className="w-full rounded-xl border border-glass bg-base px-3.5 py-2 text-sm font-mono text-[var(--color-text)] placeholder-muted transition-all duration-200 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+            className="w-full rounded-xl border border-glass bg-base px-3.5 py-2 text-sm font-mono text-[var(--color-text)] placeholder-muted transition-all duration-200 focus:border-[#2C8179] focus:outline-none focus:ring-2 focus:ring-[#2C8179]/20"
           />
         </div>
 
         <div className="sm:col-span-2">
           <button
             type="submit"
-            className="flex h-10 w-full items-center justify-center rounded-xl bg-amber-500 font-semibold text-slate-950 shadow-md shadow-amber-500/20 transition-all duration-200 hover:bg-amber-400 hover:shadow-glow-sm"
+            className="flex h-10 w-full items-center justify-center rounded-xl bg-[#2C8179] font-semibold text-slate-950 shadow-md shadow-[#2C8179]/20 transition-all duration-200 hover:bg-[#2C8179]/80 hover:shadow-glow-sm"
           >
             <Plus className="h-4 w-4 stroke-[3]" />
             {/* <span className="text-xs">Add</span> */}

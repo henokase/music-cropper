@@ -10,7 +10,7 @@ export function HomePage() {
 
         <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-primary max-w-3xl mx-auto leading-[1.15]">
           Crop & Trim Your Audio Files with{" "}
-          <span className="bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 bg-clip-text text-transparent">
+          <span className="text-[#2C8179] bg-clip-text">
             Studio Precision
           </span>
         </h1>

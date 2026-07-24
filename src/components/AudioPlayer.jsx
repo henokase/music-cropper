@@ -147,7 +147,7 @@ export function AudioPlayer() {
       {/* Track Title Info Header */}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-glass pb-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500 ring-1 ring-amber-500/20">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#2C8179]/10 text-[#2C8179] ring-1 ring-[#2C8179]/20">
             <Music className="h-5 w-5" />
           </div>
           <div className="min-w-0">
@@ -162,7 +162,7 @@ export function AudioPlayer() {
         </div>
 
         <div className="flex items-center gap-2 rounded-xl bg-surface-hover px-3 py-1.5 border border-glass">
-          <Radio className={`h-4 w-4 ${isPlaying ? "text-amber-500 animate-pulse" : "text-muted"}`} />
+          <Radio className={`h-4 w-4 ${isPlaying ? "text-[#2C8179] animate-pulse" : "text-muted"}`} />
           <span className="text-xs font-mono font-semibold text-secondary">
             {formatTime(currentTime)} / {formatTime(audioFile.duration)}
           </span>
@@ -183,7 +183,7 @@ export function AudioPlayer() {
       <div className={!isReady ? "hidden" : "block"}>
         <div
           ref={waveformContainerRef}
-          className="relative mb-5 cursor-crosshair rounded-xl bg-surface-hover/50 p-3 border border-glass transition-colors hover:border-amber-500/30"
+          className="relative mb-5 cursor-crosshair rounded-xl bg-surface-hover/50 p-3 border border-glass transition-colors hover:border-[#2C8179]/30"
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         >
@@ -196,11 +196,11 @@ export function AudioPlayer() {
               style={{ left: hover.x }}
             >
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2">
-                <span className="whitespace-nowrap rounded-lg bg-amber-500 px-2.5 py-1 text-[11px] font-bold text-slate-950 shadow-md">
+                <span className="whitespace-nowrap rounded-lg bg-[#2C8179] px-2.5 py-1 text-[11px] font-bold text-slate-950 shadow-md">
                   {formatTimeMs(hover.time)}
                 </span>
               </div>
-              <div className="h-full w-[2px] bg-amber-500 shadow-glow-sm" />
+              <div className="h-full w-[2px] bg-[#2C8179] shadow-glow-sm" />
             </div>
           )}
         </div>
@@ -211,7 +211,7 @@ export function AudioPlayer() {
             <button
               onClick={togglePlayPause}
               disabled={!isReady}
-              className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-tr from-amber-500 to-amber-600 text-white shadow-md shadow-amber-500/25 transition-all duration-200 hover:scale-105 hover:from-amber-600 hover:to-amber-700 hover:shadow-glow-md disabled:opacity-40"
+              className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-tr from-[#2C8179] to-[#2C8179] text-white shadow-md shadow-[#2C8179]/25 transition-all duration-200 hover:scale-105 hover:from-[#2C8179] hover:to-[#2C8179] hover:shadow-glow-md disabled:opacity-40"
             >
               {isPlaying ? (
                 <Pause className="h-5 w-5" />
@@ -234,7 +234,7 @@ export function AudioPlayer() {
           <div className="flex items-center gap-2.5 rounded-xl bg-surface-hover/70 px-3.5 py-2 border border-glass">
             <button
               onClick={toggleMute}
-              className="text-secondary transition-colors hover:text-amber-500"
+              className="text-secondary transition-colors hover:text-[#2C8179]"
             >
               {isMuted || volume === 0 ? (
                 <VolumeX className="h-4 w-4 text-rose-500" />

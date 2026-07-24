@@ -7,7 +7,7 @@ export function NotFoundPage() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-24 text-center">
       <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl border border-glass bg-surface/80 shadow-card-glass backdrop-blur-xl">
-        <AlertCircle className="h-10 w-10 text-amber-500" />
+        <AlertCircle className="h-10 w-10 text-[#2C8179]" />
       </div>
       <h1 className="mb-2 text-3xl font-extrabold text-primary">
         Page Not Found
@@ -17,7 +17,7 @@ export function NotFoundPage() {
       </p>
       <button
         onClick={() => navigate("/")}
-        className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-amber-500/20 transition-all hover:from-amber-600 hover:to-amber-700 hover:shadow-glow-sm"
+        className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#2C8179] to-[#2C8179] px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-[#2C8179]/20 transition-all hover:from-[#2C8179] hover:to-[#2C8179] hover:shadow-glow-sm"
       >
         <Home className="h-4 w-4" />
         Return to Home Studio
