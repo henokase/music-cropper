@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HomePage } from "./pages/HomePage";
 import { EditorPage } from "./pages/EditorPage";
@@ -9,26 +8,15 @@ import { Toaster, toast } from "sonner";
 import { useRegisterSW } from "virtual:pwa-register/react";
 
 function App() {
-  const {
-    offlineReady: [offlineReady, setOfflineReady],
-  } = useRegisterSW({
+  useRegisterSW({
     onOfflineReady() {
       toast.success("Ready for Offline Use!", {
+        id: "pwa-offline-ready",
         description: "WaveCrop has been saved to your browser cache. You can now use all studio tools without an internet connection.",
         duration: 6000,
       });
     },
   });
-
-  useEffect(() => {
-    if (offlineReady) {
-      toast.success("Ready for Offline Use!", {
-        description: "WaveCrop has been saved to your browser cache. You can now use all studio tools without an internet connection.",
-        duration: 6000,
-      });
-      setOfflineReady(false);
-    }
-  }, [offlineReady, setOfflineReady]);
 
   return (
     <BrowserRouter>
