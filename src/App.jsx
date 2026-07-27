@@ -1,12 +1,35 @@
+import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HomePage } from "./pages/HomePage";
 import { EditorPage } from "./pages/EditorPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { Layout } from "./components/layout/Layout";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { Toaster } from "sonner";
+import { Toaster, toast } from "sonner";
+import { useRegisterSW } from "virtual:pwa-register/react";
 
 function App() {
+  const {
+    offlineReady: [offlineReady, setOfflineReady],
+  } = useRegisterSW({
+    onOfflineReady() {
+      toast.success("Ready for Offline Use!", {
+        description: "WaveCrop has been saved to your browser cache. You can now use all studio tools without an internet connection.",
+        duration: 6000,
+      });
+    },
+  });
+
+  useEffect(() => {
+    if (offlineReady) {
+      toast.success("Ready for Offline Use!", {
+        description: "WaveCrop has been saved to your browser cache. You can now use all studio tools without an internet connection.",
+        duration: 6000,
+      });
+      setOfflineReady(false);
+    }
+  }, [offlineReady, setOfflineReady]);
+
   return (
     <BrowserRouter>
       <ErrorBoundary>

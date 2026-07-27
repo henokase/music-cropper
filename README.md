@@ -133,12 +133,7 @@ src/
 
 ## Deployment
 
-The project includes a `render.yaml` for one-click deployment to **Render** as a static site:
-
-- **Build command:** `npm install && npm run build`
-- **Publish directory:** `./dist`
-- **SPA support:** All routes rewrite to `index.html` (via `_redirects` + Render config)
-- **Pull request previews** are enabled
+WaveCrop compiles to static assets (`npm run build`) and can be hosted on any static platform (Vercel, Netlify, Cloudflare Pages, GitHub Pages).
 
 ---
 
