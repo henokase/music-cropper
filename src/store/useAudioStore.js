@@ -2,6 +2,8 @@ import { create } from 'zustand';
 
 export const useAudioStore = create((set) => ({
   audioFile: null,
+  exportFormat: 'mp3', // Default format is MP3 (compressed)
+  setExportFormat: (format) => set({ exportFormat: format }),
   setAudioFile: (file, duration) => {
     set({
       audioFile: {
@@ -44,4 +46,4 @@ export const useAudioStore = create((set) => ({
         : null,
     })),
   clearAudio: () => set({ audioFile: null }),
-})); 
+}));
