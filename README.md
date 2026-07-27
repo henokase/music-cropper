@@ -4,12 +4,7 @@
 
 **Client-Side Audio Trimmer, Merger & Studio**
 
-[![React](https://img.shields.io/badge/React-18.3-blue.svg?logo=react)](https://reactjs.org/)
-[![Vite](https://img.shields.io/badge/Vite-5.4-purple.svg?logo=vite)](https://vitejs.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC.svg?logo=tailwind-css)](https://tailwindcss.com/)
-[![WebAssembly](https://img.shields.io/badge/WebAssembly-LAME-654FF0.svg?logo=webassembly)](https://webassembly.org/)
-[![PWA](https://img.shields.io/badge/PWA-Offline_Ready-5A0FC8.svg?logo=pwa)](https://web.dev/progressive-web-apps/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![React](https://img.shields.io/badge/React-18.3-blue.svg?logo=react)](https://reactjs.org/) [![Vite](https://img.shields.io/badge/Vite-5.4-purple.svg?logo=vite)](https://vitejs.dev/) [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC.svg?logo=tailwind-css)](https://tailwindcss.com/) [![WebAssembly](https://img.shields.io/badge/WebAssembly-LAME-654FF0.svg?logo=webassembly)](https://webassembly.org/) [![PWA](https://img.shields.io/badge/PWA-Offline_Ready-5A0FC8.svg?logo=pwa)](https://web.dev/progressive-web-apps/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 WaveCrop is a high-performance, browser-native audio workstation for cutting, merging, and exporting audio clips. Built with modern web technologies, Web Assembly (WASM) multi-threading, and Progressive Web App (PWA) offline capabilities, WaveCrop processes all your files **100% locally** on your device with zero server uploads and zero privacy tradeoffs.
 
@@ -17,22 +12,22 @@ WaveCrop is a high-performance, browser-native audio workstation for cutting, me
 
 ---
 
-## ✨ Features
+## Features
 
-- 🎧 **Interactive Waveform Editor** — High-precision audio visualization powered by WaveSurfer.js with real-time hover time tooltips and custom region drag selection.
-- ✂️ **Precise Multi-Interval Cutting** — Create unlimited clip intervals with sub-second millisecond accuracy via interactive visual waveform dragging or manual timestamp inputs (`mm:ss.ms` / `hh:mm:ss.ms`).
-- 🔗 **Audio Merger & Linker** — Concatenate and stitch multiple intervals into a single, seamless continuous audio track without silent gaps or clicks.
-- 🚀 **WASM Multi-Format Encoding** — Export clips as uncompressed **WAV** or WebAssembly-accelerated **MP3** (192 kbps), reducing exported file sizes by **~90%**.
-- ⚙️ **Non-Blocking Multithreading** — All heavy audio encoding runs inside dedicated **Web Workers**, keeping the user interface buttery smooth at 60 FPS without tab freezing or browser lag.
-- 📦 **Batch ZIP Export** — Package and download all defined intervals in a single click as a compressed `.zip` archive with an animated progress loader.
-- 📲 **Progressive Web App (PWA) & Offline Mode** — Fully installable on Desktop, Android, and iOS devices. Works completely offline without an internet connection.
-- 🌗 **Pitch-Black Dark & Teal Glassmorphism** — Crafted with dynamic HSL color tokens, dark mode (`#000000`), glassmorphism cards, and interactive micro-animations.
-- ⌨️ **Keyboard Shortcuts & Seeking** — Full transport accessibility (`Space` to Play/Pause, `←`/`→` to Seek ±5s, `↑`/`↓` to Adjust Volume, plus dedicated on-screen ±5s seek controls for mobile screens).
-- 🔒 **100% Private & Local** — Zero server uploads. Your audio files never leave your web browser.
+- **Interactive Waveform Editor** — High-precision audio visualization powered by WaveSurfer.js with real-time hover time tooltips and custom region drag selection.
+- **Precise Multi-Interval Cutting** — Create unlimited clip intervals with sub-second millisecond accuracy via interactive visual waveform dragging or manual timestamp inputs (`mm:ss.ms` / `hh:mm:ss.ms`).
+- **Audio Merger & Linker** — Concatenate and stitch multiple intervals into a single, seamless continuous audio track without silent gaps or clicks.
+- **WASM Multi-Format Encoding** — Export clips as uncompressed **WAV** or WebAssembly-accelerated **MP3** (192 kbps), reducing exported file sizes by **~90%**.
+- **Non-Blocking Multithreading** — All heavy audio encoding runs inside dedicated **Web Workers**, keeping the user interface buttery smooth at 60 FPS without tab freezing or browser lag.
+- **Batch ZIP Export** — Package and download all defined intervals in a single click as a compressed `.zip` archive with an animated progress loader.
+- **Progressive Web App (PWA) & Offline Mode** — Fully installable on Desktop, Android, and iOS devices. Works completely offline without an internet connection.
+- **Pitch-Black Dark & Teal Glassmorphism** — Crafted with dynamic HSL color tokens, dark mode (`#000000`), glassmorphism cards, and interactive micro-animations.
+- **Keyboard Shortcuts & Seeking** — Full transport accessibility (`Space` to Play/Pause, `←`/`→` to Seek ±5s, `↑`/`↓` to Adjust Volume, plus dedicated on-screen ±5s seek controls for mobile screens).
+- **100% Private & Local** — Zero server uploads. Your audio files never leave your web browser.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Domain | Technology | Description |
 | :--- | :--- | :--- |
@@ -49,7 +44,7 @@ WaveCrop is a high-performance, browser-native audio workstation for cutting, me
 
 ---
 
-## ⌨️ Keyboard Shortcuts
+## Keyboard Shortcuts
 
 | Shortcut | Action |
 | :--- | :--- |
@@ -63,7 +58,7 @@ WaveCrop is a high-performance, browser-native audio workstation for cutting, me
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - **Node.js**: `v18.0.0` or higher
@@ -90,7 +85,7 @@ WaveCrop is a high-performance, browser-native audio workstation for cutting, me
 
 ---
 
-## 📦 Scripts
+## Scripts
 
 - **`npm run dev`** — Start Vite development server with HMR.
 - **`npm run build`** — Build production assets, WASM background workers, and PWA service workers into `dist/`.
@@ -99,7 +94,7 @@ WaveCrop is a high-performance, browser-native audio workstation for cutting, me
 
 ---
 
-## 📂 Project Architecture
+## Project Architecture
 
 ```
 music-cropper/
@@ -126,7 +121,7 @@ music-cropper/
 
 ---
 
-## 🌐 Deployment
+## Deployment
 
 WaveCrop compiles to pure static HTML/CSS/JS/WASM assets in `./dist/` and can be deployed directly to any static web host:
 
@@ -136,6 +131,6 @@ WaveCrop compiles to pure static HTML/CSS/JS/WASM assets in `./dist/` and can be
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the [MIT License](LICENSE) — Copyright (c) 2026 Henok Asegedew.
