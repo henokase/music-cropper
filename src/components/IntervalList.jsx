@@ -1,10 +1,78 @@
-import { Trash2, Scissors, Download, Layers, CheckCircle2 } from "lucide-react";
+import { Trash2, Scissors, Download, Layers } from "lucide-react";
 import { useAudioStore } from "../store/useAudioStore";
 import { audioBufferToWav } from "../utils/audioUtils";
+import { formatTimestamp, getIntervalSeconds } from "../utils/timeUtils";
 import JSZip from "jszip";
 import { toast } from "sonner";
 import { useState } from "react";
 import { ProgressBar } from "./ProgressBar";
+
+function getAudioContextConstructor() {
+  return window.AudioContext || window.webkitAudioContext;
+}
+
+function getSafeBaseName(fileName) {
+  const dotIndex = fileName.lastIndexOf(".");
+  const baseName = dotIndex > 0 ? fileName.slice(0, dotIndex) : fileName;
+  return baseName.replace(/[<>:"/\\|?*]/g, "_").trim() || "audio";
+}
+
+function getSafeTimeLabel(time) {
+  return time.replace(/[<>:"/\\|?*]/g, "-");
+}
+
+async function decodeAudioFile(file) {
+  const AudioContextCtor = getAudioContextConstructor();
+  if (!AudioContextCtor) {
+    throw new Error("Web Audio API is not supported in this browser");
+  }
+
+  const audioContext = new AudioContextCtor();
+  try {
+    const buffer = await audioContext.decodeAudioData(await file.arrayBuffer());
+    return { audioContext, buffer };
+  } catch (error) {
+    await audioContext.close();
+    throw error;
+  }
+}
+
+function cropBuffer(audioContext, sourceBuffer, interval) {
+  const seconds = getIntervalSeconds(interval);
+  if (!seconds) {
+    throw new Error(`Invalid interval: ${interval.startTime} to ${interval.endTime}`);
+  }
+
+  const sampleRate = sourceBuffer.sampleRate;
+  const startSample = Math.max(0, Math.floor(seconds.start * sampleRate));
+  const endSample = Math.min(sourceBuffer.length, Math.ceil(seconds.end * sampleRate));
+
+  if (endSample <= startSample) {
+    throw new Error(`Invalid interval: ${interval.startTime} to ${interval.endTime}`);
+  }
+
+  const frameCount = endSample - startSample;
+  const croppedBuffer = audioContext.createBuffer(
+    sourceBuffer.numberOfChannels,
+    frameCount,
+    sampleRate,
+  );
+
+  for (let channel = 0; channel < sourceBuffer.numberOfChannels; channel++) {
+    const sourceData = sourceBuffer.getChannelData(channel);
+    croppedBuffer.getChannelData(channel).set(sourceData.subarray(startSample, endSample));
+  }
+
+  return {
+    blob: audioBufferToWav(croppedBuffer),
+    startTime: formatTimestamp(startSample / sampleRate),
+    endTime: formatTimestamp(endSample / sampleRate),
+  };
+}
+
+function getClipFileName(baseName, clip) {
+  return `${baseName}_${getSafeTimeLabel(clip.startTime)}-${getSafeTimeLabel(clip.endTime)}.wav`;
+}
 
 export function IntervalList() {
   const audioFile = useAudioStore((state) => state.audioFile);
@@ -15,51 +83,31 @@ export function IntervalList() {
 
   const handleCropAll = async () => {
     if (!audioFile || intervals.length === 0) return;
+
+    let decoded;
     try {
       setIsProcessing(true);
-      setProgress(0);
 
-      const ac = new AudioContext();
-      const url = URL.createObjectURL(audioFile.file);
-      const res = await fetch(url);
-      URL.revokeObjectURL(url);
-      const buf = await ac.decodeAudioData(await res.arrayBuffer());
-
+      decoded = await decodeAudioFile(audioFile.file);
+      const baseName = getSafeBaseName(audioFile.file.name);
       const zip = new JSZip();
-      for (let i = 0; i < intervals.length; i++) {
-        const iv = intervals[i];
-        const sp = iv.startTime.split(":").map(Number);
-        const ep = iv.endTime.split(":").map(Number);
-        const st =
-          sp.length === 3
-            ? sp[0] * 3600 + sp[1] * 60 + sp[2]
-            : sp[0] * 60 + sp[1];
-        const et =
-          ep.length === 3
-            ? ep[0] * 3600 + ep[1] * 60 + ep[2]
-            : ep[0] * 60 + ep[1];
-        const sr = buf.sampleRate;
-        const ss = Math.floor(st * sr);
-        const es = Math.floor(et * sr);
+      const intervalsToExport = [...intervals];
 
-        const nb = ac.createBuffer(buf.numberOfChannels, es - ss, sr);
-        for (let ch = 0; ch < buf.numberOfChannels; ch++) {
-          const cd = buf.getChannelData(ch);
-          const nd = nb.getChannelData(ch);
-          for (let j = 0; j < es - ss; j++) nd[j] = cd[ss + j];
-        }
-        zip.file(
-          `${audioFile.file.name.split(".")[0]}_${iv.startTime}-${iv.endTime}.wav`,
-          await audioBufferToWav(nb),
-        );
-        setProgress(((i + 1) / intervals.length) * 100);
+      for (let i = 0; i < intervalsToExport.length; i++) {
+        const clip = cropBuffer(decoded.audioContext, decoded.buffer, intervalsToExport[i]);
+        zip.file(getClipFileName(baseName, clip), clip.blob);
       }
 
-      const blob = await zip.generateAsync({ type: "blob" });
+      const blob = await zip.generateAsync({
+        type: "blob",
+        compression: "DEFLATE",
+        compressionOptions: { level: 6 },
+      });
+
       const dl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = dl;
-      a.download = `${audioFile.file.name.split(".")[0]}_all_crops.zip`;
+      a.download = `${baseName}_all_crops.zip`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -67,62 +115,39 @@ export function IntervalList() {
       toast.success("Batch ZIP archive successfully generated & downloaded!");
     } catch (err) {
       console.error(err);
-      toast.error("Export failed during zip compilation");
+      toast.error(err instanceof Error ? err.message : "Export failed during zip compilation");
     } finally {
+      await decoded?.audioContext.close();
       setIsProcessing(false);
-      setProgress(0);
     }
   };
 
   const handleCrop = async (interval) => {
     if (!audioFile) return;
+
+    let decoded;
     try {
       setIsProcessing(true);
-      setProgress(0);
 
-      const ac = new AudioContext();
-      const url = URL.createObjectURL(audioFile.file);
-      const res = await fetch(url);
-      URL.revokeObjectURL(url);
-      const buf = await ac.decodeAudioData(await res.arrayBuffer());
+      decoded = await decodeAudioFile(audioFile.file);
+      const baseName = getSafeBaseName(audioFile.file.name);
+      const clip = cropBuffer(decoded.audioContext, decoded.buffer, interval);
 
-      const sp = interval.startTime.split(":").map(Number);
-      const ep = interval.endTime.split(":").map(Number);
-      const st =
-        sp.length === 3
-          ? sp[0] * 3600 + sp[1] * 60 + sp[2]
-          : sp[0] * 60 + sp[1];
-      const et =
-        ep.length === 3
-          ? ep[0] * 3600 + ep[1] * 60 + ep[2]
-          : ep[0] * 60 + ep[1];
-      const sr = buf.sampleRate;
-      const ss = Math.floor(st * sr);
-      const es = Math.floor(et * sr);
-
-      const nb = ac.createBuffer(buf.numberOfChannels, es - ss, sr);
-      for (let ch = 0; ch < buf.numberOfChannels; ch++) {
-        const cd = buf.getChannelData(ch);
-        const nd = nb.getChannelData(ch);
-        for (let j = 0; j < es - ss; j++) nd[j] = cd[ss + j];
-      }
-
-      const wav = await audioBufferToWav(nb);
-      const dl = URL.createObjectURL(wav);
+      const dl = URL.createObjectURL(clip.blob);
       const a = document.createElement("a");
       a.href = dl;
-      a.download = `${audioFile.file.name.split(".")[0]}_${interval.startTime}-${interval.endTime}.wav`;
+      a.download = getClipFileName(baseName, clip);
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(dl);
-      toast.success(`WAV clip exported: ${interval.startTime} → ${interval.endTime}`);
+      toast.success(`WAV clip exported: ${clip.startTime} → ${clip.endTime}`);
     } catch (err) {
       console.error(err);
-      toast.error("Audio crop failed");
+      toast.error(err instanceof Error ? err.message : "Audio crop failed");
     } finally {
+      await decoded?.audioContext.close();
       setIsProcessing(false);
-      setProgress(0);
     }
   };
 
@@ -156,8 +181,8 @@ export function IntervalList() {
       </div>
 
       {isProcessing && (
-        <div className="mb-5 rounded-xl bg-surface-hover/80 p-4 border border-glass">
-          <ProgressBar progress={progress} />
+        <div className="mb-5">
+          <ProgressBar />
         </div>
       )}
 
@@ -194,7 +219,6 @@ export function IntervalList() {
                   title="Crop and download WAV clip"
                 >
                   <Scissors className="h-3.5 w-3.5" />
-                  {/* <span>Download WAV</span> */}
                 </button>
                 <button
                   onClick={() => removeInterval(interval.id)}

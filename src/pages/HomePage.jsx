@@ -1,6 +1,5 @@
 import { SiteDescription } from "../components/SiteDescription";
 import { AudioUploader } from "../components/AudioUploader";
-import { Sliders, AudioWaveform } from "lucide-react";
 
 export function HomePage() {
   return (

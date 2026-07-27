@@ -1,22 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import WaveSurfer from "wavesurfer.js";
 import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.js";
-import { Play, Pause, Volume2, VolumeX, Radio, Music } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Radio, Music, RotateCcw, RotateCw } from "lucide-react";
 import { useAudioStore } from "../store/useAudioStore";
 import { toast } from "sonner";
-
-function formatTime(seconds) {
-  const m = Math.floor(seconds / 60);
-  const s = Math.floor(seconds % 60);
-  return `${m}:${s.toString().padStart(2, "0")}`;
-}
-
-function formatTimeMs(seconds) {
-  const m = Math.floor(seconds / 60);
-  const s = Math.floor(seconds % 60);
-  const ms = Math.floor((seconds % 1) * 100);
-  return `${m}:${s.toString().padStart(2, "0")}.${ms.toString().padStart(2, "0")}`;
-}
+import { formatTimestamp } from "../utils/timeUtils";
 
 function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -37,9 +25,14 @@ export function AudioPlayer() {
 
   const handleRegionCreateRef = useRef(null);
   handleRegionCreateRef.current = (region) => {
-    const start = formatTime(region.start);
-    const end = formatTime(region.end);
-    useAudioStore.getState().addInterval({ startTime: start, endTime: end });
+    const start = formatTimestamp(region.start);
+    const end = formatTimestamp(region.end);
+    useAudioStore.getState().addInterval({
+      startTime: start,
+      endTime: end,
+      startSeconds: region.start,
+      endSeconds: region.end,
+    });
     region.remove();
     toast.success(`Interval added: ${start} → ${end}`);
   };
@@ -121,6 +114,23 @@ export function AudioPlayer() {
     }
   }, [isReady]);
 
+  const seekBackward5s = useCallback(() => {
+    const ws = wavesurferRef.current;
+    if (ws && isReady) {
+      const cur = ws.getCurrentTime();
+      ws.setTime(Math.max(0, cur - 5));
+    }
+  }, [isReady]);
+
+  const seekForward5s = useCallback(() => {
+    const ws = wavesurferRef.current;
+    if (ws && isReady) {
+      const cur = ws.getCurrentTime();
+      const dur = ws.getDuration();
+      ws.setTime(Math.min(dur, cur + 5));
+    }
+  }, [isReady]);
+
   const handleVolumeChange = (e) => {
     const val = parseFloat(e.target.value);
     setVolume(val);
@@ -145,9 +155,7 @@ export function AudioPlayer() {
     const handleKeyDown = (e) => {
       const activeTag = document.activeElement?.tagName.toLowerCase();
       if (activeTag === "input" || activeTag === "textarea" || activeTag === "button") {
-        if (activeTag === "input" && document.activeElement?.type === "text") {
-          return; // Allow normal typing in text input boxes
-        }
+        return;
       }
 
       if (e.code === "Space") {
@@ -171,25 +179,16 @@ export function AudioPlayer() {
         });
       } else if (e.code === "ArrowLeft") {
         e.preventDefault();
-        const ws = wavesurferRef.current;
-        if (ws) {
-          const currentTime = ws.getCurrentTime();
-          ws.setTime(Math.max(0, currentTime - 5));
-        }
+        seekBackward5s();
       } else if (e.code === "ArrowRight") {
         e.preventDefault();
-        const ws = wavesurferRef.current;
-        if (ws) {
-          const currentTime = ws.getCurrentTime();
-          const duration = ws.getDuration();
-          ws.setTime(Math.min(duration, currentTime + 5));
-        }
+        seekForward5s();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [togglePlayPause]);
+  }, [togglePlayPause, seekBackward5s, seekForward5s]);
 
   if (!audioFile) return null;
 
@@ -215,7 +214,7 @@ export function AudioPlayer() {
         <div className="flex items-center gap-2 rounded-xl bg-surface-hover px-3 py-1.5 border border-glass">
           <Radio className={`h-4 w-4 ${isPlaying ? "text-[#2C8179] animate-pulse" : "text-muted"}`} />
           <span className="text-xs font-mono font-semibold text-secondary">
-            {formatTime(currentTime)} / {formatTime(audioFile.duration)}
+            {formatTimestamp(currentTime, 0)} / {formatTimestamp(audioFile.duration, 0)}
           </span>
         </div>
       </div>
@@ -248,7 +247,7 @@ export function AudioPlayer() {
             >
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2">
                 <span className="whitespace-nowrap rounded-lg bg-[#2C8179] px-2.5 py-1 text-[11px] font-bold text-slate-950 shadow-md">
-                  {formatTimeMs(hover.time)}
+                  {formatTimestamp(hover.time)}
                 </span>
               </div>
               <div className="h-full w-[2px] bg-[#2C8179] shadow-glow-sm" />
@@ -257,8 +256,19 @@ export function AudioPlayer() {
         </div>
 
         {/* Transport Controls Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Seek Backward 5s */}
+            <button
+              onClick={seekBackward5s}
+              disabled={!isReady}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-glass bg-surface-hover text-secondary transition-all hover:border-[#2C8179] hover:text-primary disabled:opacity-40"
+              title="Seek -5 seconds"
+              aria-label="Seek backward 5 seconds"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </button>
+
             <button
               onClick={togglePlayPause}
               disabled={!isReady}
@@ -270,12 +280,23 @@ export function AudioPlayer() {
                 <Play className="h-5 w-5 ml-0.5" />
               )}
             </button>
-            
-            <div className="flex flex-col">
-              <span className="text-xs font-bold text-primary">
+
+            {/* Seek Forward 5s */}
+            <button
+              onClick={seekForward5s}
+              disabled={!isReady}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-glass bg-surface-hover text-secondary transition-all hover:border-[#2C8179] hover:text-primary disabled:opacity-40"
+              title="Seek +5 seconds"
+              aria-label="Seek forward 5 seconds"
+            >
+              <RotateCw className="h-4 w-4" />
+            </button>
+
+            <div className="flex flex-col ml-1">
+              <span className="hidden sm:block text-xs font-bold text-primary">
                 {isPlaying ? "Playing Track" : "Paused"}
               </span>
-              <span className="text-[11px] text-muted">
+              <span className="text-[11px] text-muted hidden sm:block">
                 Drag mouse across waveform to set crop section
               </span>
             </div>

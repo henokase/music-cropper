@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAudioStore } from "../store/useAudioStore";
 import { Plus, Clock } from "lucide-react";
 import { toast } from "sonner";
+import { formatTimestamp, parseTimestamp } from "../utils/timeUtils";
 
 export function IntervalForm() {
   const [startTime, setStartTime] = useState("");
@@ -9,27 +10,17 @@ export function IntervalForm() {
   const audioFile = useAudioStore((state) => state.audioFile);
   const addInterval = useAudioStore((state) => state.addInterval);
 
-  const validateTimeFormat = (time) => {
-    return /^([0-9]+):([0-5][0-9])(:([0-5][0-9]))?$/.test(time);
-  };
-
-  const convertToSeconds = (time) => {
-    const parts = time.split(":").map(Number);
-    return parts.length === 3
-      ? parts[0] * 3600 + parts[1] * 60 + parts[2]
-      : parts[0] * 60 + parts[1];
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!validateTimeFormat(startTime) || !validateTimeFormat(endTime)) {
-      toast.error("Invalid format! Use mm:ss or h:mm:ss format (e.g. 0:15)");
+    const startSeconds = parseTimestamp(startTime);
+    const endSeconds = parseTimestamp(endTime);
+
+    if (startSeconds === null || endSeconds === null) {
+      toast.error("Invalid format. Use mm:ss, mm:ss.ss, or h:mm:ss.ss");
       return;
     }
 
-    const startSeconds = convertToSeconds(startTime);
-    const endSeconds = convertToSeconds(endTime);
     const duration = audioFile?.duration || 0;
 
     if (startSeconds >= endSeconds) {
@@ -42,10 +33,18 @@ export function IntervalForm() {
       return;
     }
 
-    addInterval({ startTime, endTime });
+    const normalizedStart = formatTimestamp(startSeconds);
+    const normalizedEnd = formatTimestamp(endSeconds);
+
+    addInterval({
+      startTime: normalizedStart,
+      endTime: normalizedEnd,
+      startSeconds,
+      endSeconds,
+    });
     setStartTime("");
     setEndTime("");
-    toast.success(`Created interval ${startTime} → ${endTime}`);
+    toast.success(`Created interval ${normalizedStart} → ${normalizedEnd}`);
   };
 
   return (
@@ -62,7 +61,7 @@ export function IntervalForm() {
             Manual Interval Entry
           </h3>
         </div>
-        <span className="text-[11px] text-muted">Format: mm:ss</span>
+        <span className="text-[11px] text-muted">Format: mm:ss.ss</span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
@@ -76,7 +75,7 @@ export function IntervalForm() {
           <input
             type="text"
             id="startTime"
-            placeholder="0:00"
+            placeholder="0:00.00"
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
             className="w-full rounded-xl border border-glass bg-base px-3.5 py-2 text-sm font-mono text-[var(--color-text)] placeholder-muted transition-all duration-200 focus:border-[#2C8179] focus:outline-none focus:ring-2 focus:ring-[#2C8179]/20"
@@ -93,7 +92,7 @@ export function IntervalForm() {
           <input
             type="text"
             id="endTime"
-            placeholder="0:00"
+            placeholder="0:15.50"
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
             className="w-full rounded-xl border border-glass bg-base px-3.5 py-2 text-sm font-mono text-[var(--color-text)] placeholder-muted transition-all duration-200 focus:border-[#2C8179] focus:outline-none focus:ring-2 focus:ring-[#2C8179]/20"
@@ -106,7 +105,6 @@ export function IntervalForm() {
             className="flex h-10 w-full items-center justify-center rounded-xl bg-[#2C8179] font-semibold text-slate-950 shadow-md shadow-[#2C8179]/20 transition-all duration-200 hover:bg-[#2C8179]/80 hover:shadow-glow-sm"
           >
             <Plus className="h-4 w-4 stroke-[3]" />
-            {/* <span className="text-xs">Add</span> */}
           </button>
         </div>
       </div>

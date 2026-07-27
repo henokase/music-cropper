@@ -1,4 +1,4 @@
-import { Upload, Scissors, Download, ShieldCheck, Zap } from "lucide-react";
+import { Upload, Scissors, Download } from "lucide-react";
 
 export function SiteDescription({ mode }) {
   const descriptions = {

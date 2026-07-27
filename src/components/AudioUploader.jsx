@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { Upload, Music, ShieldCheck } from "lucide-react";
+import { Upload, ShieldCheck } from "lucide-react";
 import { useAudioStore } from "../store/useAudioStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -64,7 +64,7 @@ export function AudioUploader() {
         toast.error("Error processing audio file");
       }
     },
-    [setAudioFile, navigate],
+    [MAX_FILE_SIZE, navigate, setAudioFile],
   );
 
   const handleFileChange = useCallback(
