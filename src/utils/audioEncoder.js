@@ -10,8 +10,9 @@ export function encodeAudioBuffer(buffer, format = 'mp3', kbps = 192) {
       const sampleRate = buffer.sampleRate;
       const sampleLength = buffer.length;
 
-      const leftData = buffer.getChannelData(0);
-      const rightData = channels > 1 ? buffer.getChannelData(1) : leftData;
+      // Slice copies of arrays to safely transfer ownership without corrupting source AudioBuffer
+      const leftData = buffer.getChannelData(0).slice(0);
+      const rightData = channels > 1 ? buffer.getChannelData(1).slice(0) : leftData;
 
       worker.onmessage = (e) => {
         const { type, blob, error } = e.data;
@@ -25,18 +26,21 @@ export function encodeAudioBuffer(buffer, format = 'mp3', kbps = 192) {
 
       worker.onerror = (err) => {
         worker.terminate();
-        reject(err);
+        reject(new Error(err.message || 'Worker error during audio encoding'));
       };
 
-      worker.postMessage({
-        channels,
-        sampleRate,
-        sampleLength,
-        leftData,
-        rightData,
-        format,
-        kbps,
-      });
+      worker.postMessage(
+        {
+          channels,
+          sampleRate,
+          sampleLength,
+          leftData,
+          rightData,
+          format,
+          kbps,
+        },
+        [leftData.buffer, rightData.buffer]
+      );
     } catch (err) {
       reject(err);
     }

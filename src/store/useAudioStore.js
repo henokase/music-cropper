@@ -2,7 +2,7 @@ import { create } from 'zustand';
 
 export const useAudioStore = create((set) => ({
   audioFile: null,
-  exportFormat: 'mp3', // Default format is MP3 (compressed)
+  exportFormat: 'wav', // Default format is WAV (uncompressed, instant speed)
   setExportFormat: (format) => set({ exportFormat: format }),
   setAudioFile: (file, duration) => {
     set({

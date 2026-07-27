@@ -1,6 +1,6 @@
-import { Mp3Encoder } from '@breezystack/lamejs';
+import { createMp3Encoder } from 'wasm-media-encoders';
 
-self.onmessage = function (e) {
+self.onmessage = async function (e) {
   const { channels, sampleRate, sampleLength, leftData, rightData, format, kbps } = e.data;
 
   try {
@@ -8,45 +8,48 @@ self.onmessage = function (e) {
       const blob = encodeWav(channels, sampleRate, sampleLength, leftData, rightData);
       self.postMessage({ type: 'SUCCESS', blob });
     } else {
-      const blob = encodeMp3(channels, sampleRate, sampleLength, leftData, rightData, kbps || 192);
+      const blob = await encodeMp3Wasm(channels, sampleRate, sampleLength, leftData, rightData, kbps || 192);
       self.postMessage({ type: 'SUCCESS', blob });
     }
   } catch (error) {
-    self.postMessage({ type: 'ERROR', error: error.message || 'Encoding failed in worker thread' });
+    self.postMessage({ type: 'ERROR', error: error.message || 'Encoding failed in WASM worker thread' });
   }
 };
 
-function encodeMp3(channels, sampleRate, sampleLength, leftData, rightData, kbps) {
-  const mp3encoder = new Mp3Encoder(channels, sampleRate, kbps);
-  const mp3Data = [];
+async function encodeMp3Wasm(channels, sampleRate, sampleLength, leftData, rightData, kbps) {
+  // Create a clean instance per encoding request to prevent state contamination or heap corruption
+  const encoder = await createMp3Encoder();
 
-  const leftInt16 = new Int16Array(sampleLength);
-  const rightInt16 = new Int16Array(sampleLength);
+  encoder.configure({
+    sampleRate: sampleRate,
+    channels: channels,
+    bitrate: kbps,
+  });
 
-  for (let i = 0; i < sampleLength; i++) {
-    let sLeft = Math.max(-1, Math.min(1, leftData[i]));
-    leftInt16[i] = sLeft < 0 ? sLeft * 0x8000 : sLeft * 0x7FFF;
+  const pcmBuffers = channels > 1 ? [leftData, rightData] : [leftData];
+  
+  // Encode in safe, manageable chunks of 44,100 samples (~1 second) to prevent WASM heap buffer overflow
+  const chunkSize = 44100;
+  const encodedChunks = [];
 
-    let sRight = Math.max(-1, Math.min(1, rightData[i]));
-    rightInt16[i] = sRight < 0 ? sRight * 0x8000 : sRight * 0x7FFF;
-  }
-
-  const chunkSize = 1152;
   for (let i = 0; i < sampleLength; i += chunkSize) {
-    const leftChunk = leftInt16.subarray(i, i + chunkSize);
-    const rightChunk = rightInt16.subarray(i, i + chunkSize);
-    const mp3buf = mp3encoder.encodeBuffer(leftChunk, rightChunk);
-    if (mp3buf.length > 0) {
-      mp3Data.push(mp3buf);
+    const end = Math.min(i + chunkSize, sampleLength);
+    const leftChunk = leftData.subarray(i, end);
+    const rightChunk = channels > 1 ? rightData.subarray(i, end) : leftChunk;
+    const chunkBuffers = channels > 1 ? [leftChunk, rightChunk] : [leftChunk];
+
+    const outChunk = encoder.encode(chunkBuffers);
+    if (outChunk && outChunk.length > 0) {
+      encodedChunks.push(outChunk);
     }
   }
 
-  const mp3buf = mp3encoder.flush();
-  if (mp3buf.length > 0) {
-    mp3Data.push(mp3buf);
+  const flushedChunk = encoder.finalize();
+  if (flushedChunk && flushedChunk.length > 0) {
+    encodedChunks.push(flushedChunk);
   }
 
-  return new Blob(mp3Data, { type: 'audio/mp3' });
+  return new Blob(encodedChunks, { type: 'audio/mp3' });
 }
 
 function encodeWav(channels, sampleRate, sampleLength, leftData, rightData) {

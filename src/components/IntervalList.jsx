@@ -83,7 +83,7 @@ export function IntervalList() {
   const audioFile = useAudioStore((state) => state.audioFile);
   const intervals = audioFile?.intervals ?? [];
   const removeInterval = useAudioStore((state) => state.removeInterval);
-  const exportFormat = useAudioStore((state) => state.exportFormat) || "mp3";
+  const exportFormat = useAudioStore((state) => state.exportFormat) || "wav";
   const setExportFormat = useAudioStore((state) => state.setExportFormat);
   const [isProcessing, setIsProcessing] = useState(false);
 
