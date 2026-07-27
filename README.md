@@ -1,142 +1,141 @@
-# WaveCrop
+<div align="center">
 
-**Precision Audio Trimmer & Studio**
+# 🎵 WaveCrop
 
-A browser-based audio trimming and cropping application. Upload an audio file, visualize it as an interactive waveform, select crop intervals by dragging or entering timestamps, and export the segments as WAV files — individually or as a ZIP bundle. All processing happens **entirely in your browser** with zero server uploads.
+**Client-Side Audio Trimmer, Merger & Studio**
 
----
+[![React](https://img.shields.io/badge/React-18.3-blue.svg?logo=react)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-5.4-purple.svg?logo=vite)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC.svg?logo=tailwind-css)](https://tailwindcss.com/)
+[![WebAssembly](https://img.shields.io/badge/WebAssembly-LAME-654FF0.svg?logo=webassembly)](https://webassembly.org/)
+[![PWA](https://img.shields.io/badge/PWA-Offline_Ready-5A0FC8.svg?logo=pwa)](https://web.dev/progressive-web-apps/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## Features
+WaveCrop is a high-performance, browser-native audio workstation for cutting, merging, and exporting audio clips. Built with modern web technologies, Web Assembly (WASM) multi-threading, and Progressive Web App (PWA) offline capabilities, WaveCrop processes all your files **100% locally** on your device with zero server uploads and zero privacy tradeoffs.
 
-- **Audio Upload** — Drag-and-drop or click-to-browse for MP3, WAV, OGG, M4A, and AAC files (up to 200 MB)
-- **Waveform Visualization** — High-resolution WaveSurfer.js waveform with bar display
-- **Interactive Cropping** — Click and drag directly on the waveform to create crop intervals; fine-tune with precise start/end timestamps
-- **Manual Interval Entry** — Add intervals by typing `mm:ss` or `h:mm:ss` timestamps
-- **Single Export** — Download any interval as a 16-bit WAV file
-- **Batch Export** — Export all intervals at once as a ZIP archive with a live progress indicator
-- **Dark / Light Theme** — Toggle between dark and light modes (persisted to localStorage)
-- **Keyboard Shortcuts** — Play/Pause (Space), Seek (±5s with Arrow keys), Volume control (Arrow Up/Down)
-- **100% Private** — All audio processing is client-side; your files never leave your machine
-- **Responsive Design** — Works on desktop and tablet viewports
+</div>
 
 ---
 
-## Tech Stack
+## ✨ Features
 
-| | |
-|---|---|
-| **Framework** | React 18 |
-| **Build Tool** | Vite 5 |
-| **Styling** | TailwindCSS 3 |
-| **Audio** | WaveSurfer.js 7 + Regions Plugin |
-| **State** | Zustand |
-| **Routing** | React Router 7 |
-| **Icons** | Lucide React |
-| **Export** | JSZip (WAV) |
-| **Animations** | Framer Motion |
-| **Notifications** | Sonner |
-| **Linting** | ESLint 9 (flat config) |
+- 🎧 **Interactive Waveform Editor** — High-precision audio visualization powered by WaveSurfer.js with real-time hover time tooltips and custom region drag selection.
+- ✂️ **Precise Multi-Interval Cutting** — Create unlimited clip intervals with sub-second millisecond accuracy via interactive visual waveform dragging or manual timestamp inputs (`mm:ss.ms` / `hh:mm:ss.ms`).
+- 🔗 **Audio Merger & Linker** — Concatenate and stitch multiple intervals into a single, seamless continuous audio track without silent gaps or clicks.
+- 🚀 **WASM Multi-Format Encoding** — Export clips as uncompressed **WAV** or WebAssembly-accelerated **MP3** (192 kbps), reducing exported file sizes by **~90%**.
+- ⚙️ **Non-Blocking Multithreading** — All heavy audio encoding runs inside dedicated **Web Workers**, keeping the user interface buttery smooth at 60 FPS without tab freezing or browser lag.
+- 📦 **Batch ZIP Export** — Package and download all defined intervals in a single click as a compressed `.zip` archive with an animated progress loader.
+- 📲 **Progressive Web App (PWA) & Offline Mode** — Fully installable on Desktop, Android, and iOS devices. Works completely offline without an internet connection.
+- 🌗 **Pitch-Black Dark & Teal Glassmorphism** — Crafted with dynamic HSL color tokens, dark mode (`#000000`), glassmorphism cards, and interactive micro-animations.
+- ⌨️ **Keyboard Shortcuts & Seeking** — Full transport accessibility (`Space` to Play/Pause, `←`/`→` to Seek ±5s, `↑`/`↓` to Adjust Volume, plus dedicated on-screen ±5s seek controls for mobile screens).
+- 🔒 **100% Private & Local** — Zero server uploads. Your audio files never leave your web browser.
 
 ---
 
-## Getting Started
+## 🛠️ Tech Stack
+
+| Domain | Technology | Description |
+| :--- | :--- | :--- |
+| **Frontend Framework** | **React 18** | UI component architecture |
+| **Build Tooling** | **Vite 5** | Lightning-fast HMR & production bundler |
+| **Styling & Theme** | **Tailwind CSS 3** | Vanilla CSS design tokens & glassmorphism system |
+| **Audio Engine** | **WaveSurfer.js 7** | Interactive canvas waveform & region plugins |
+| **High-Perf Encoding** | **WebAssembly (WASM LAME)** | Multi-threaded MP3 & WAV Web Worker encoding engine |
+| **PWA & Caching** | **vite-plugin-pwa** | Service worker caching & web app manifest |
+| **State Management** | **Zustand** | Global audio file & interval workspace store |
+| **Routing** | **React Router 7** | Client-side page navigation |
+| **Icons & Toasts** | **Lucide React & Sonner** | Modern UI icon set & notifications |
+| **Batch Bundling** | **JSZip** | Async ZIP archive compilation |
+
+---
+
+## ⌨️ Keyboard Shortcuts
+
+| Shortcut | Action |
+| :--- | :--- |
+| <kbd>Space</kbd> | Play / Pause audio playback |
+| <kbd>←</kbd> (Left Arrow) | Seek backward 5 seconds |
+| <kbd>→</kbd> (Right Arrow) | Seek forward 5 seconds |
+| <kbd>↑</kbd> (Up Arrow) | Increase playback volume |
+| <kbd>↓</kbd> (Down Arrow) | Decrease playback volume |
+
+*Note: Keyboard shortcuts are automatically disabled while typing in timestamp input fields.*
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
-
-- Node.js v18 or higher
-- npm
+- **Node.js**: `v18.0.0` or higher
+- **npm**: `v9.0.0` or higher
 
 ### Installation
 
-```bash
-git clone https://github.com/henokasegedew/wavecrop.git
-cd wavecrop
-npm install
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/henokasegedew/wavecrop.git
+   cd music-cropper
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Start the local development server**:
+   ```bash
+   npm run dev
+   ```
+   *Access the app at [http://localhost:3000](http://localhost:3000).*
+
+---
+
+## 📦 Scripts
+
+- **`npm run dev`** — Start Vite development server with HMR.
+- **`npm run build`** — Build production assets, WASM background workers, and PWA service workers into `dist/`.
+- **`npm run preview`** — Preview local production build.
+- **`npm run lint`** — Run ESLint check for codebase health.
+
+---
+
+## 📂 Project Architecture
+
 ```
-
-### Development
-
-```bash
-npm run dev
-```
-
-Opens the Vite dev server at [http://localhost:3000](http://localhost:3000).
-
-### Production Build
-
-```bash
-npm run build
-```
-
-Output is written to `./dist/`, ready for static hosting.
-
-### Preview Build
-
-```bash
-npm run preview
-```
-
-### Lint
-
-```bash
-npm run lint
+music-cropper/
+├── public/                     # Static icons & PWA manifest assets
+├── src/
+│   ├── assets/                 # SVGs and static brand assets
+│   ├── components/             # Modular React UI components
+│   │   ├── layout/             # Layout wrapper, Header navbar & Theme toggle
+│   │   ├── AudioPlayer.jsx     # WaveSurfer waveform player & transport bar
+│   │   ├── AudioUploader.jsx   # Drag-and-drop file uploader
+│   │   ├── ErrorBoundary.jsx   # Fallback React error boundary
+│   │   ├── IntervalForm.jsx    # Timestamp manual entry card
+│   │   ├── IntervalList.jsx    # Cut interval queue, format selector & export actions
+│   │   ├── ProgressBar.jsx     # Animated shimmer loading indicator
+│   │   └── SiteDescription.jsx # Feature overview cards
+│   ├── pages/                  # Top-level view routes (Home, Editor, 404)
+│   ├── store/                  # Zustand global audio state store
+│   ├── utils/                  # Safe time formatting & Web Worker audio helpers
+│   └── workers/                # WebAssembly LAME & WAV Web Worker encoding script
+├── index.html                  # HTML entry point & font preloads
+├── vite.config.js              # Vite configuration & PWA service worker plugin
+└── package.json                # Project dependencies & build scripts
 ```
 
 ---
 
-## Usage
+## 🌐 Deployment
 
-1. **Upload** — On the home page, drop an audio file or click the upload area to browse
-2. **Crop** — In the editor, drag across the waveform or use the manual entry form to define intervals
-3. **Export** — Click the download icon on any interval for a single WAV, or hit "Export All (ZIP)" for a batch download
+WaveCrop compiles to pure static HTML/CSS/JS/WASM assets in `./dist/` and can be deployed directly to any static web host:
 
-### Keyboard Shortcuts (Editor)
-
-| Key | Action |
-|---|---|
-| `Space` | Play / Pause |
-| `ArrowLeft` | Seek backward 5 seconds |
-| `ArrowRight` | Seek forward 5 seconds |
-| `ArrowUp` | Volume up |
-| `ArrowDown` | Volume down |
+- **Vercel / Netlify / Cloudflare Pages / GitHub Pages**:
+  - **Build Command**: `npm run build`
+  - **Output Directory**: `dist`
 
 ---
 
-## Project Structure
+## 📄 License
 
-```
-src/
-├── assets/          # Static assets (SVG icon)
-├── components/
-│   ├── layout/      # Layout shell, ThemeToggle
-│   ├── AudioPlayer.jsx      # WaveSurfer waveform + playback
-│   ├── AudioUploader.jsx    # File upload (drag & drop)
-│   ├── ErrorBoundary.jsx    # React error boundary
-│   ├── IntervalForm.jsx     # Manual timestamp entry
-│   ├── IntervalList.jsx     # Crop interval list + actions
-│   ├── ProgressBar.jsx      # Export progress indicator
-│   └── SiteDescription.jsx  # Feature cards
-├── pages/
-│   ├── HomePage.jsx         # Landing page
-│   ├── EditorPage.jsx       # Editor workspace
-│   └── NotFoundPage.jsx     # 404 page
-├── store/
-│   └── useAudioStore.js     # Zustand global state
-├── utils/
-│   └── audioUtils.js        # AudioBuffer → WAV converter
-├── App.jsx                  # Root component with routes
-├── index.css                # Global styles + CSS custom properties
-└── main.jsx                 # Entry point
-```
-
----
-
-## Deployment
-
-WaveCrop compiles to static assets (`npm run build`) and can be hosted on any static platform (Vercel, Netlify, Cloudflare Pages, GitHub Pages).
-
----
-
-## License
-
-[MIT](LICENSE) — Copyright (c) 2024 Henok Asegedew
+This project is licensed under the [MIT License](LICENSE) — Copyright (c) 2026 Henok Asegedew.
